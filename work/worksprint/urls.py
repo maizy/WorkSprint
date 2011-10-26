@@ -1,0 +1,17 @@
+# -*- coding: utf-8 -*-
+
+__author__ = 'Nikita Kovaliov, nikita@rusoft.ru'
+
+__version__         = '0.1'
+__doc__             = ''
+
+
+from django.conf.urls.defaults import patterns, include, url
+
+urlpatterns = patterns('work.worksprint.views.index',
+    url(r'^$', 'index', name='index'),
+)
+
+urlpatterns += patterns('work.worksprint.views.timer',
+    url(r'^timer/$', 'index', name='timer-index'),
+)

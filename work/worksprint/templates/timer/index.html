@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+
+
+{% block head_css %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}worksprint/css/timer.css" />
+{% endblock %}
+
+
+
+{% block content%}
+<div class="timer">
+    <div class="buttons">
+        <ul>
+            <li><a href="#start">Start</a></li>
+        </ul>
+    </div>
+
+    <div class="dial"><span class="hours">--</span><span class="divider">:</span><span class="minutes">--</span></div>
+
+    <div class="results">
+
+    </div>
+</div>
+{% endblock %}
