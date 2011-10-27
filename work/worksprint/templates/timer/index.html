@@ -6,20 +6,29 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}worksprint/css/timer.css" />
 {% endblock %}
 
+{% block head_scripts %}
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/timer.js"></script>
+{% endblock %}
+
 
 
 {% block content%}
 <div class="timer">
-    <div class="buttons">
-        <ul>
-            <li><a href="#start">Start</a></li>
-        </ul>
+    <div class="buttons"></div>
+
+    <div class="dial">
+        <span class="hours">--</span>
+        <span class="divider">:</span>
+        <span class="minutes">--</span>
     </div>
 
-    <div class="dial"><span class="hours">--</span><span class="divider">:</span><span class="minutes">--</span></div>
+    <div class="results"></div>
 
-    <div class="results">
+<script type="text/javascript">
+(function() {
+    var globalObject = window;
 
-    </div>
-</div>
+    globalObject.testTimer = new Worksprint.Timer();
+})();
+</script>
 {% endblock %}

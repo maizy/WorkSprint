@@ -3,3 +3,12 @@
     font-size: 3em;
     font-weight: bold;
 }
+
+.timer .buttons ul li {
+    display: inline-block;
+    margin-right: 2px;
+}
+
+    .timer .buttons ul li button {
+        font-size: 1.5em;
+    }
