@@ -13,12 +13,17 @@ if (!window.Worksprint.Timer) {
  *   push-button (code, $button) - push any button
  *   push-button-[some] ($button) - push button with code 'some'
  *
+ *   change-state
+ *   change-state-from-[prevState]
+ *   change-state-to-[state]
+ *   change-state-from-[prevState]-to-[state]
+ *
  */
 window.Worksprint.Timer = (function() {
 
     var STATES = {
         notwork: 'notwork',
-        brk: 'break',
+        brk: 'brk',
         work: 'work'
     };
 
@@ -26,10 +31,11 @@ window.Worksprint.Timer = (function() {
         play: { label: 'Play'},
         stop: { label: 'Stop'},
         interupt: { label: '\''},
-        rewind: { label: '<<'}
+        rewind: { label: 'Undo'}
     };
 
     var t = function(opts) {
+
         var self = this;
 
         this._opts = $.extend(
@@ -57,6 +63,7 @@ window.Worksprint.Timer = (function() {
      * Init
      */
     t.prototype.init = function() {
+
         var self = this;
         var opts = this._opts;
 
@@ -65,17 +72,18 @@ window.Worksprint.Timer = (function() {
         window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
         this._initButtons();
-        this._bindButtonsTransitions();
 
+        $(this).bind('change-state', _.bind(this._refreshButtons, this));
         this._refreshButtons();
 
-
+        this._bindButtonsTransitions();
     };
 
     /**
      *
      */
     t.prototype._initButtons = function() {
+
         var self = this;
         var $butWrap = $('div.buttons');
         var $butList = $('<ul/>');
@@ -107,25 +115,36 @@ window.Worksprint.Timer = (function() {
      *
      */
     t.prototype._bindButtonsTransitions = function() {
+
         var self = this;
 
         $(self).bind('push-button-play', function() {
-            self._setState(STATES.work);
+            var curState = self.getState();
+            if (curState == STATES.notwork) {
+                self.beginWork();
+            }
         });
 
         $(self).bind('push-button-rewind', function() {
             var curState = self.getState();
             if (curState == STATES.brk) {
-                self._setState(STATES.work);
-            } else {
-                self._setState(STATES.notwork);
+                self.rewindBreak();
+            } else if (curState == STATES.work) {
+                self.rewindWork();
             }
         });
 
         $(self).bind('push-button-stop', function() {
-            self._setState(STATES.brk);
+            var curState = self.getState();
+            if (curState == STATES.work) {
+                self.endWork();
+            } else if (curState == STATES.brk) {
+                self.endBreak();
+            }
         });
     };
+
+
 
 
     /**
@@ -151,7 +170,7 @@ window.Worksprint.Timer = (function() {
                 break;
 
             case STATES.brk:
-                enabledButtons.push('rewind');
+                enabledButtons.push('rewind', 'stop');
 
                 break;
         }
@@ -170,12 +189,62 @@ window.Worksprint.Timer = (function() {
 
         if (_.contains(STATES, state)) {
             var prevState = this.getState();
-            $(this).triggerHandler('change-state', [prevState, state]);
-
             this._state = state;
-            self._refreshButtons();
+
+            window.console && console.debug && console.debug(
+                'change-state from '+prevState+' to '+state);
+
+            $(this).triggerHandler('change-state-from-'+prevState+'-to-'+state);
+            $(this).triggerHandler('change-state-to-'+state, [prevState]);
+            $(this).triggerHandler('change-state-from-'+prevState, [state]);
+            $(this).triggerHandler('change-state', [prevState, state]);
         }
     };
+
+    // -------------------------------------------
+    //actions (API)
+
+    t.prototype.beginWork = function() {
+        var self = this;
+        window.console && console.debug && console.debug('begin work');
+
+        self._setState(STATES.work);
+
+    };
+
+    t.prototype.rewindWork = function() {
+        var self = this;
+        window.console && console.debug && console.debug('rewind work');
+
+        self._setState(STATES.notwork);
+
+    };
+
+    t.prototype.endWork/* and have a break */ = function() {
+        var self = this;
+        window.console && console.debug && console.debug('end work');
+
+        self._setState(STATES.brk);
+
+        _.delay(_.bind(this.endBreak, this), 5000);
+
+    };
+
+    t.prototype.rewindBreak /* and continue work sprint*/ = function() {
+        var self = this;
+        window.console && console.debug && console.debug('rewind break (back to work)');
+
+        self._setState(STATES.work);
+
+    };
+
+    t.prototype.endBreak = function() {
+        var self = this;
+        window.console && console.debug && console.debug('end break');
+
+        self._setState(STATES.notwork);
+    };
+
 
     // -------------------------------------------
     // getters, setters
@@ -190,6 +259,8 @@ window.Worksprint.Timer = (function() {
     };
 
 
+    t.STATES = STATES;
+    t.BUTTONS = BUTTONS;
 
 
 
