@@ -1,18 +1,32 @@
 if (!window.Worksprint) { window.Worksprint = {}; }
 if (!window.Worksprint.Timer) {
+
+/**
+ * Timer widget js class
+ *
+ * @author Nikita <nikita@maizy.ru>
+ * @license GPLv3
+ *
+ *
+ * Events:
+ *
+ *   push-button (code, $button) - push any button
+ *   push-button-[some] ($button) - push button with code 'some'
+ *
+ */
 window.Worksprint.Timer = (function() {
 
     var STATES = {
-        pause: 'pause',
+        notwork: 'notwork',
         brk: 'break',
-        play: 'play'
+        work: 'work'
     };
 
     var BUTTONS = {
         play: { label: 'Play'},
-        rewind: { label: '<<'},
         stop: { label: 'Stop'},
-        interupt: { label: '\''}
+        interupt: { label: '\''},
+        rewind: { label: '<<'}
     };
 
     var t = function(opts) {
@@ -22,7 +36,7 @@ window.Worksprint.Timer = (function() {
             //def opts
             {
                 wrapClass: 'timer',
-                state: STATES.pause
+                state: STATES.notwork
             },
             opts || {});
 
@@ -37,7 +51,7 @@ window.Worksprint.Timer = (function() {
     };
 
     // -------------------------------------------
-
+    // init, refresh
 
     /**
      * Init
@@ -51,6 +65,8 @@ window.Worksprint.Timer = (function() {
         window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
         this._initButtons();
+        this._bindButtonsTransitions();
+
         this._refreshButtons();
 
 
@@ -71,6 +87,11 @@ window.Worksprint.Timer = (function() {
                 .text(setup.label)
                 .prop('disabled', true);
 
+            $btn.click(function() {
+                $(self).triggerHandler('push-button-'+code, [$btn]);
+                $(self).triggerHandler('push-button', [code, $btn]);
+            });
+
             $btnLi.append($btn);
             $butList.append($btnLi);
 
@@ -80,6 +101,30 @@ window.Worksprint.Timer = (function() {
         $butWrap.append($butList);
 
         return $butWrap;
+    };
+
+    /**
+     *
+     */
+    t.prototype._bindButtonsTransitions = function() {
+        var self = this;
+
+        $(self).bind('push-button-play', function() {
+            self._setState(STATES.work);
+        });
+
+        $(self).bind('push-button-rewind', function() {
+            var curState = self.getState();
+            if (curState == STATES.brk) {
+                self._setState(STATES.work);
+            } else {
+                self._setState(STATES.notwork);
+            }
+        });
+
+        $(self).bind('push-button-stop', function() {
+            self._setState(STATES.brk);
+        });
     };
 
 
@@ -94,13 +139,14 @@ window.Worksprint.Timer = (function() {
         var enabledButtons = [];
 
         switch (state) {
-            case STATES.pause:
+
+            case STATES.notwork:
                 enabledButtons.push('play');
 
                 break;
 
-            case STATES.play:
-                enabledButtons.push(['rewind', 'stop', 'interupt']);
+            case STATES.work:
+                enabledButtons.push('rewind', 'stop', 'interupt');
 
                 break;
 
@@ -111,15 +157,29 @@ window.Worksprint.Timer = (function() {
         }
 
         $.each(BUTTONS, function(code, button) {
-            var enable = _.indexOf(enabledButtons, code) !== -1;
+            var enable = _.contains(enabledButtons, code);
             self._buttons[code].prop('disabled', !enable);
         });
     };
 
     // -------------------------------------------
+    // states
 
+    t.prototype._setState = function(state) {
+        var self = this;
+
+        if (_.contains(STATES, state)) {
+            var prevState = this.getState();
+            $(this).triggerHandler('change-state', [prevState, state]);
+
+            this._state = state;
+            self._refreshButtons();
+        }
+    };
 
     // -------------------------------------------
+    // getters, setters
+
 
     /**
      * Current state
@@ -128,6 +188,8 @@ window.Worksprint.Timer = (function() {
         var self = this;
         return this._state;
     };
+
+
 
 
 
