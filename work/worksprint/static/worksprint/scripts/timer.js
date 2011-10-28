@@ -34,6 +34,17 @@ window.Worksprint.Timer = (function() {
         rewind: { label: 'Undo'}
     };
 
+    var TIMER_MODE = {
+        notwork: 'notwork',
+        work0: 'work0',
+        work25: 'work25',
+        work50: 'work50',
+        work75: 'work75',
+        work90: 'work90',
+        brk0:   'brk0',
+        brk90:  'brk90'
+    };
+
     var t = function(opts) {
 
         var self = this;
@@ -50,6 +61,9 @@ window.Worksprint.Timer = (function() {
         this._buttons = {};
 
         this._state = this._opts.state;
+
+        this._timerStart = undefined;
+        this._timerInterval = undefined;
 
         $(function() {
             self.init();
@@ -68,6 +82,7 @@ window.Worksprint.Timer = (function() {
         var opts = this._opts;
 
         this._$wrap = $('div.'+opts.wrapClass+':first');
+        this._$debug = $('div.debug', this._$wrap);
 
         window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
@@ -208,7 +223,10 @@ window.Worksprint.Timer = (function() {
         var self = this;
         window.console && console.debug && console.debug('begin work');
 
-        self._setState(STATES.work);
+        this._setState(STATES.work);
+        this._startTimer();
+
+
 
     };
 
@@ -216,7 +234,7 @@ window.Worksprint.Timer = (function() {
         var self = this;
         window.console && console.debug && console.debug('rewind work');
 
-        self._setState(STATES.notwork);
+        this._setState(STATES.notwork);
 
     };
 
@@ -224,17 +242,20 @@ window.Worksprint.Timer = (function() {
         var self = this;
         window.console && console.debug && console.debug('end work');
 
-        self._setState(STATES.brk);
+        this._setState(STATES.brk);
 
-        _.delay(_.bind(this.endBreak, this), 5000);
+        //_.delay(_.bind(this.endBreak, this), 5000);
+        
+        this._endTimer();
 
+        this._startTimer();
     };
 
     t.prototype.rewindBreak /* and continue work sprint*/ = function() {
         var self = this;
         window.console && console.debug && console.debug('rewind break (back to work)');
 
-        self._setState(STATES.work);
+        this._setState(STATES.work);
 
     };
 
@@ -242,7 +263,8 @@ window.Worksprint.Timer = (function() {
         var self = this;
         window.console && console.debug && console.debug('end break');
 
-        self._setState(STATES.notwork);
+        this._setState(STATES.notwork);
+        this._endTimer();
     };
 
 
@@ -259,11 +281,64 @@ window.Worksprint.Timer = (function() {
     };
 
 
+    // -------------------------------------------
+    // timer
+
+    t.prototype._startTimer = function() {
+        var self = this;
+
+        this._timerStart = Date.now();
+
+        this._timerInterval = setInterval(_.bind(this._updateDial, this), 1000);
+
+    };
+
+    t.prototype._updateDial = function() {
+        var self = this;
+
+        this._$debug.text('Sec: '+this.getTimerSeconds());
+    };
+
+    t.prototype.getTimerSeconds = function() {
+        var self = this;
+        if (!_.isUndefined(this._timerStart)) {
+            var delta = Date.now() - this._timerStart;
+            return delta/1000;
+        }
+
+        return undefined;
+    };
+
+    /**
+     *
+     * @return {Number} - seconds
+     */
+    t.prototype._endTimer = function() {
+        var self = this;
+
+        var res = this.getTimerSeconds();
+        this._timerStart = undefined;
+        if (!_.isUndefined(this._timerInterval)) {
+            clearInterval(this._timerInterval);
+        }
+        this._timerInterval = undefined;
+
+        return res;
+    };
+
+    /**
+     *
+     * @param mode - TIMER_MODE.*
+     */
+    t.prototype._setTimerMode = function(mode) {
+        var self = this;
+
+    };
+
+    // -------------------------------------------
+
     t.STATES = STATES;
     t.BUTTONS = BUTTONS;
-
-
-
     return t;
 
 })();
