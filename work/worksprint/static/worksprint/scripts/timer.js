@@ -30,7 +30,7 @@ window.Worksprint.Timer = (function() {
     var BUTTONS = {
         play: { label: 'Play'},
         stop: { label: 'Stop'},
-        interupt: { label: '\''},
+        interrupt: { label: '\''},
         rewind: { label: 'Undo'}
     };
 
@@ -65,6 +65,8 @@ window.Worksprint.Timer = (function() {
         this._timerStart = undefined;
         this._timerInterval = undefined;
 
+        this._interrupts = 0;
+
         $(function() {
             self.init();
         });
@@ -92,6 +94,7 @@ window.Worksprint.Timer = (function() {
         this._refreshButtons();
 
         this._bindButtonsTransitions();
+        $(this).bind('push-button-interrupt', _.bind(this.addInterrupt, this));
     };
 
     /**
@@ -180,7 +183,7 @@ window.Worksprint.Timer = (function() {
                 break;
 
             case STATES.work:
-                enabledButtons.push('rewind', 'stop', 'interupt');
+                enabledButtons.push('rewind', 'stop', 'interrupt');
 
                 break;
 
@@ -216,6 +219,13 @@ window.Worksprint.Timer = (function() {
         }
     };
 
+     /**
+     * Current state
+     */
+    t.prototype.getState = function() {
+        return this._state;
+    };
+
     // -------------------------------------------
     //actions (API)
 
@@ -226,7 +236,7 @@ window.Worksprint.Timer = (function() {
         this._setState(STATES.work);
         this._startTimer();
 
-
+        this.resetIterruptCounter();
 
     };
 
@@ -245,7 +255,7 @@ window.Worksprint.Timer = (function() {
         this._setState(STATES.brk);
 
         //_.delay(_.bind(this.endBreak, this), 5000);
-        
+
         this._endTimer();
 
         this._startTimer();
@@ -267,18 +277,23 @@ window.Worksprint.Timer = (function() {
         this._endTimer();
     };
 
-
-    // -------------------------------------------
-    // getters, setters
-
-
-    /**
-     * Current state
-     */
-    t.prototype.getState = function() {
-        var self = this;
-        return this._state;
+    t.prototype.addInterrupt = function() {
+        this._interrupts += 1;
+        window.console && console.debug && console.debug('add interrupt');
+        $(this).triggerHandler('interrupt', [this.getInterrutpCounter()]);
     };
+
+    t.prototype.resetIterruptCounter = function() {
+        $(this).triggerHandler('interrupt-reset', [this.getInterrutpCounter()]);
+        this._interrupts = 0;
+        return this;
+    };
+
+    t.prototype.getInterrutpCounter = function() {
+        return this._interrupts;
+    };
+
+
 
 
     // -------------------------------------------
