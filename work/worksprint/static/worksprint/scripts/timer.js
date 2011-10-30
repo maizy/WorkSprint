@@ -90,6 +90,8 @@ window.Worksprint.Timer = (function() {
         this._$dialSeconds = $('.seconds', this._$wrap);
         this._$dialDivider = $('.divider', this._$wrap);
 
+        this._$interrupts = $('.interrupts', this._$wrap);
+
         window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
         this._initButtons();
@@ -284,7 +286,10 @@ window.Worksprint.Timer = (function() {
     t.prototype.addInterrupt = function() {
         this._interrupts += 1;
         window.console && console.debug && console.debug('add interrupt');
+
         $(this).triggerHandler('interrupt', [this.getInterrutpCounter()]);
+
+        this._$interrupts.append(_.escapeHTML("'"));
     };
 
     t.prototype.resetIterruptCounter = function() {
