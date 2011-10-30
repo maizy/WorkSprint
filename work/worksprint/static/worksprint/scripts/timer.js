@@ -101,6 +101,9 @@ window.Worksprint.Timer = (function() {
 
         this._bindButtonsTransitions();
         $(this).bind('push-button-interrupt', _.bind(this.addInterrupt, this));
+
+        this._updateDial();
+        this._updateIterrupts();
     };
 
     /**
@@ -240,8 +243,8 @@ window.Worksprint.Timer = (function() {
         window.console && console.debug && console.debug('begin work');
 
         this._setState(STATES.work);
-        this._startTimer();
 
+        this._startTimer();
         this.resetIterruptCounter();
 
     };
@@ -251,6 +254,9 @@ window.Worksprint.Timer = (function() {
         window.console && console.debug && console.debug('rewind work');
 
         this._setState(STATES.notwork);
+
+        this._endTimer();
+        this.resetIterruptCounter();
 
     };
 
@@ -267,6 +273,10 @@ window.Worksprint.Timer = (function() {
         this._startTimer();
     };
 
+    /**
+     *
+     * TODO save work sprint timer
+     */
     t.prototype.rewindBreak /* and continue work sprint*/ = function() {
         var self = this;
         window.console && console.debug && console.debug('rewind break (back to work)');
@@ -287,21 +297,24 @@ window.Worksprint.Timer = (function() {
         this._interrupts += 1;
         window.console && console.debug && console.debug('add interrupt');
 
-        $(this).triggerHandler('interrupt', [this.getInterrutpCounter()]);
-
-        this._$interrupts.append(_.escapeHTML("'"));
+        $(this).triggerHandler('interrupt', [this.getInterruptCounter()]);
+        this._updateIterrupts();
     };
 
     t.prototype.resetIterruptCounter = function() {
-        $(this).triggerHandler('interrupt-reset', [this.getInterrutpCounter()]);
+        $(this).triggerHandler('interrupt-reset', [this.getInterruptCounter()]);
         this._interrupts = 0;
+        this._updateIterrupts();
         return this;
     };
 
-    t.prototype.getInterrutpCounter = function() {
+    t.prototype.getInterruptCounter = function() {
         return this._interrupts;
     };
 
+    t.prototype._updateIterrupts = function() {
+        this._$interrupts.text(_.pad('', this.getInterruptCounter(), "'"));
+    };
 
 
 
@@ -313,6 +326,7 @@ window.Worksprint.Timer = (function() {
 
         this._timerStart = Date.now();
 
+        this._updateDial();
         this._timerInterval = setInterval(_.bind(this._updateDial, this), 1000);
 
     };
@@ -320,11 +334,21 @@ window.Worksprint.Timer = (function() {
     t.prototype._updateDial = function() {
         var self = this;
 
-        var period = Math.round(this.getTimerSeconds());
+        var seconds, minutes, visDiv;
 
-        var seconds = period % 60;
-        var minutes = Math.floor(period / 60);
-        var visDiv = period % 2 == 0;
+        var period = this.getTimerSeconds();
+        if (_.isUndefined(period)) {
+            seconds = 0;
+            minutes = 0;
+            visDiv = true;
+
+        } else {
+            period = Math.round(period);
+            seconds = period % 60;
+            minutes = Math.floor(period / 60);
+            visDiv = period % 2 == 0;
+        }
+
 
         this._$dialMinutes.text(_.pad(minutes, 2, '0'));
         this._$dialSeconds.text(_.pad(seconds, 2, '0'));
@@ -359,7 +383,7 @@ window.Worksprint.Timer = (function() {
         }
         this._timerInterval = undefined;
 
-        this._$dialDivider.removeClass('unvisible');
+        this._updateDial();
 
         return res;
     };
