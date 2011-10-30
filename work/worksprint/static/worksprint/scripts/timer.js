@@ -86,6 +86,10 @@ window.Worksprint.Timer = (function() {
         this._$wrap = $('div.'+opts.wrapClass+':first');
         this._$debug = $('div.debug', this._$wrap);
 
+        this._$dialMinutes = $('.minutes', this._$wrap);
+        this._$dialSeconds = $('.seconds', this._$wrap);
+        this._$dialDivider = $('.divider', this._$wrap);
+
         window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
         this._initButtons();
@@ -311,7 +315,19 @@ window.Worksprint.Timer = (function() {
     t.prototype._updateDial = function() {
         var self = this;
 
-        this._$debug.text('Sec: '+this.getTimerSeconds());
+        var period = Math.round(this.getTimerSeconds());
+
+        var seconds = period % 60;
+        var minutes = Math.floor(period / 60);
+        var visDiv = period % 2 == 0;
+
+        this._$dialMinutes.text(_.pad(minutes, 2, '0'));
+        this._$dialSeconds.text(_.pad(seconds, 2, '0'));
+        if (visDiv) {
+            this._$dialDivider.removeClass('unvisible');
+        } else {
+            this._$dialDivider.addClass('unvisible');
+        }
     };
 
     t.prototype.getTimerSeconds = function() {
@@ -337,6 +353,8 @@ window.Worksprint.Timer = (function() {
             clearInterval(this._timerInterval);
         }
         this._timerInterval = undefined;
+
+        this._$dialDivider.removeClass('unvisible');
 
         return res;
     };

@@ -13,18 +13,22 @@
 
 
 {% block content%}
+{% spaceless %}
 <div class="timer">
     <div class="buttons"></div>
 
     <div class="dial">
-        <span class="hours">--</span>
-        <span class="divider">:</span>
         <span class="minutes">--</span>
+        <span class="divider">:</span>
+        <span class="seconds">--</span>
     </div>
+    <div class="interrupts"></div>
 
     <div class="debug"></div>
 
     <div class="results"></div>
+</div>
+{% endspaceless %}
 
 <script type="text/javascript">
 (function() {
