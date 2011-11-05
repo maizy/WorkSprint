@@ -13,10 +13,13 @@ if (!window.Worksprint.Timer) {
  *   push-button (code, $button) - push any button
  *   push-button-[some] ($button) - push button with code 'some'
  *
- *   change-states
+ *   change-state
  *   change-state-from-[prevState]
  *   change-state-to-[state]
  *   change-state-from-[prevState]-to-[state]
+ *
+ *   interrupt
+ *   interrupt-reset
  *
  */
 window.Worksprint.Timer = (function() {
@@ -28,10 +31,10 @@ window.Worksprint.Timer = (function() {
     };
 
     var BUTTONS = {
-        play: { label: 'Play'},
+        play: { label: 'Run'},
         stop: { label: 'Stop'},
-        interrupt: { label: '\''},
-        rewind: { label: 'Undo'}
+        interrupt: { label: 'Interrupted'},
+        rewind: { label: 'Oops (undo)'}
     };
 
     var TIMER_STATE = {
