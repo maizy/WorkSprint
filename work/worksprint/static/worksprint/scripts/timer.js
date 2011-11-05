@@ -68,10 +68,15 @@ window.Worksprint.Timer = (function() {
         this._state = this._opts.state;
 
         this._timerStart = undefined;
+        this._timerOffset = 0;
         this._timerInterval = undefined;
         this._timerCountdown = undefined;
 
         this._interrupts = 0;
+
+        this._lastWorkPeriod = undefined;
+        this._lastInterruptCount = undefined;
+        this._lastBreakPeriod = undefined;
 
         $(function() {
             self.init();
@@ -250,6 +255,9 @@ window.Worksprint.Timer = (function() {
         this._startTimer();
         this.resetIterruptCounter();
 
+        this._lastWorkPeriod = undefined;
+        this._lastInterruptCount = undefined;
+
     };
 
     t.prototype.rewindWork = function() {
@@ -269,16 +277,15 @@ window.Worksprint.Timer = (function() {
 
         this._setState(STATES.brk);
 
-        //_.delay(_.bind(this.endBreak, this), 5000);
-
-        this._endTimer();
+        this._lastWorkPeriod = this._endTimer();
+        this._lastInterruptCount = this.getInterruptCounter();
+        this._lastBreakPeriod = undefined;
 
         this._startTimer(this._opts.breakTime);
     };
 
     /**
      *
-     * TODO save work sprint timer
      */
     t.prototype.rewindBreak /* and continue work sprint*/ = function() {
         var self = this;
@@ -286,15 +293,23 @@ window.Worksprint.Timer = (function() {
 
         this._setState(STATES.work);
 
+        this._endTimer();
+
+        //restore work params and timer
+        this.setInterruptCounter(this._lastInterruptCount);
+        this._startTimer(undefined, this._lastWorkPeriod);
     };
+
 
     t.prototype.endBreak = function() {
         var self = this;
         window.console && console.debug && console.debug('end break');
 
         this._setState(STATES.notwork);
-        this._endTimer();
+        this._lastBreakPeriod = this._endTimer();
+        this.resetIterruptCounter();
     };
+
 
     t.prototype.addInterrupt = function() {
         this._interrupts += 1;
@@ -304,9 +319,19 @@ window.Worksprint.Timer = (function() {
         this._updateIterrupts();
     };
 
+
+    // -------------------------------------------
+
+
     t.prototype.resetIterruptCounter = function() {
         $(this).triggerHandler('interrupt-reset', [this.getInterruptCounter()]);
         this._interrupts = 0;
+        this._updateIterrupts();
+        return this;
+    };
+
+    t.prototype.setInterruptCounter = function(cnt) {
+        this._interrupts = Math.max(0, cnt);
         this._updateIterrupts();
         return this;
     };
@@ -327,12 +352,19 @@ window.Worksprint.Timer = (function() {
     /**
      *
      * @param countdown - in seconds
+     * @param offset - in seconds
      */
-    t.prototype._startTimer = function(countdown) {
+    t.prototype._startTimer = function(countdown, offset) {
         var self = this;
 
         this._timerStart = Date.now();
         this._timerCountdown = countdown;
+
+        if (!_.isUndefined(offset) && offset > 0) {
+            this._timerOffset = offset;
+        } else {
+            this._timerOffset = undefined;
+        }
         this._updateDial();
         this._timerInterval = setInterval(_.bind(this._updateDial, this), 1000);
 
@@ -372,8 +404,11 @@ window.Worksprint.Timer = (function() {
     t.prototype.getTimerSeconds = function() {
         var self = this;
         if (!_.isUndefined(this._timerStart)) {
-            var delta = Date.now() - this._timerStart;
-            return delta/1000;
+            var delta = (Date.now() - this._timerStart) / 1000;
+            if (!_.isUndefined(this._timerOffset)) {
+                delta += this._timerOffset;
+            }
+            return delta;
         }
 
         return undefined;
