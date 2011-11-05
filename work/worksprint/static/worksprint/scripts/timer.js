@@ -13,7 +13,7 @@ if (!window.Worksprint.Timer) {
  *   push-button (code, $button) - push any button
  *   push-button-[some] ($button) - push button with code 'some'
  *
- *   change-state
+ *   change-states
  *   change-state-from-[prevState]
  *   change-state-to-[state]
  *   change-state-from-[prevState]-to-[state]
@@ -34,7 +34,7 @@ window.Worksprint.Timer = (function() {
         rewind: { label: 'Undo'}
     };
 
-    var TIMER_MODE = {
+    var TIMER_STATE = {
         notwork: 'notwork',
         work0: 'work0',
         work25: 'work25',
@@ -49,11 +49,13 @@ window.Worksprint.Timer = (function() {
 
         var self = this;
 
-        this._opts = $.extend(
+        this._opts = _.extend(
             //def opts
             {
                 wrapClass: 'timer',
-                state: STATES.notwork
+                state: STATES.notwork,
+                breakTime: 60*5,
+                workReminderTime: 60*15
             },
             opts || {});
 
@@ -64,6 +66,7 @@ window.Worksprint.Timer = (function() {
 
         this._timerStart = undefined;
         this._timerInterval = undefined;
+        this._timerCountdown = undefined;
 
         this._interrupts = 0;
 
@@ -79,8 +82,6 @@ window.Worksprint.Timer = (function() {
      * Init
      */
     t.prototype.init = function() {
-
-        var self = this;
         var opts = this._opts;
 
         this._$wrap = $('div.'+opts.wrapClass+':first');
@@ -110,11 +111,10 @@ window.Worksprint.Timer = (function() {
      *
      */
     t.prototype._initButtons = function() {
-
         var self = this;
         var $butWrap = $('div.buttons');
         var $butList = $('<ul/>');
-        $.each(BUTTONS, function(code, setup) {
+        _.each(BUTTONS, function(setup, code) {
             var $btn = $('<button/>');
             var $btnLi = $('<li/>');
 
@@ -130,8 +130,8 @@ window.Worksprint.Timer = (function() {
             $btnLi.append($btn);
             $butList.append($btnLi);
 
-            self._buttons[code] = $btn;
-        });
+            this._buttons[code] = $btn;
+        }, this);
 
         $butWrap.append($butList);
 
@@ -202,10 +202,10 @@ window.Worksprint.Timer = (function() {
                 break;
         }
 
-        $.each(BUTTONS, function(code, button) {
+        _.each(BUTTONS, function(button, code) {
             var enable = _.contains(enabledButtons, code);
-            self._buttons[code].prop('disabled', !enable);
-        });
+            this._buttons[code].prop('disabled', !enable);
+        }, this);
     };
 
     // -------------------------------------------
@@ -270,7 +270,7 @@ window.Worksprint.Timer = (function() {
 
         this._endTimer();
 
-        this._startTimer();
+        this._startTimer(this._opts.breakTime);
     };
 
     /**
@@ -321,22 +321,29 @@ window.Worksprint.Timer = (function() {
     // -------------------------------------------
     // timer
 
-    t.prototype._startTimer = function() {
+    /**
+     *
+     * @param countdown - in seconds
+     */
+    t.prototype._startTimer = function(countdown) {
         var self = this;
 
         this._timerStart = Date.now();
-
+        this._timerCountdown = countdown;
         this._updateDial();
         this._timerInterval = setInterval(_.bind(this._updateDial, this), 1000);
 
     };
 
     t.prototype._updateDial = function() {
-        var self = this;
+        var seconds, minutes, visDiv, period;
 
-        var seconds, minutes, visDiv;
+        if (!this.isTimerCountdown()) {
+            period = this.getTimerSeconds();
+        } else {
+            period = this.getTimerCountdownSeconds();
+        }
 
-        var period = this.getTimerSeconds();
         if (_.isUndefined(period)) {
             seconds = 0;
             minutes = 0;
@@ -369,6 +376,31 @@ window.Worksprint.Timer = (function() {
         return undefined;
     };
 
+
+    t.prototype.getTimerCountdown = function() {
+        return this._timerCountdown;
+    };
+
+
+    t.prototype.isTimerCountdown = function() {
+        return !_.isUndefined(this.getTimerCountdown());
+    };
+
+
+    /**
+     * @return {undefined|Number}
+     */
+    t.prototype.getTimerCountdownSeconds = function() {
+        var cd = this.getTimerCountdown();
+        var ts = this.getTimerSeconds();
+        if (!_.isUndefined(ts) && this.isTimerCountdown()) {
+            return Math.max(0, cd - ts);
+        }
+
+        return undefined;
+    };
+
+
     /**
      *
      * @return {Number} - seconds
@@ -390,7 +422,7 @@ window.Worksprint.Timer = (function() {
 
     /**
      *
-     * @param mode - TIMER_MODE.*
+     * @param mode - TIMER_STATE.*
      */
     t.prototype._setTimerMode = function(mode) {
         var self = this;
