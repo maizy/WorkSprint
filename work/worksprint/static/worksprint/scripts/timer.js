@@ -21,6 +21,12 @@ if (!window.Worksprint.Timer) {
  *   interrupt
  *   interrupt-reset
  *
+ *   after-start-work
+ *   after-rewind-work
+ *   after-end-work
+ *   after-rewind-break
+ *   after-end-break
+ *
  */
 window.Worksprint.Timer = (function() {
 
@@ -71,6 +77,8 @@ window.Worksprint.Timer = (function() {
         this._timerOffset = 0;
         this._timerInterval = undefined;
         this._timerCountdown = undefined;
+
+        this._breakTimeoutId = undefined;
 
         this._interrupts = 0;
 
@@ -258,6 +266,8 @@ window.Worksprint.Timer = (function() {
         this._lastWorkPeriod = undefined;
         this._lastInterruptCount = undefined;
 
+        $(this).triggerHandler('after-begin-work');
+
     };
 
     t.prototype.rewindWork = function() {
@@ -268,6 +278,8 @@ window.Worksprint.Timer = (function() {
 
         this._endTimer();
         this.resetIterruptCounter();
+
+        $(this).triggerHandler('after-rewind-work');
 
     };
 
@@ -281,7 +293,15 @@ window.Worksprint.Timer = (function() {
         this._lastInterruptCount = this.getInterruptCounter();
         this._lastBreakPeriod = undefined;
 
+        this._breakTimeoutId = setTimeout(
+            _.bind(this.endBreak, this),
+            this._opts.breakTime*1000
+        );
+
         this._startTimer(this._opts.breakTime);
+
+
+        $(this).triggerHandler('after-end-work');
     };
 
     /**
@@ -293,11 +313,18 @@ window.Worksprint.Timer = (function() {
 
         this._setState(STATES.work);
 
+        if (!_.isUndefined(this._breakTimeoutId)) {
+            clearTimeout(this._breakTimeoutId);
+            this._breakTimeoutId = undefined;
+        }
+
         this._endTimer();
 
         //restore work params and timer
         this.setInterruptCounter(this._lastInterruptCount);
         this._startTimer(undefined, this._lastWorkPeriod);
+
+        $(this).triggerHandler('after-rewind-break');
     };
 
 
@@ -308,6 +335,8 @@ window.Worksprint.Timer = (function() {
         this._setState(STATES.notwork);
         this._lastBreakPeriod = this._endTimer();
         this.resetIterruptCounter();
+
+        $(this).triggerHandler('after-end-break');
     };
 
 
