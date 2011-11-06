@@ -21,9 +21,9 @@ if (!window.Worksprint.Timer) {
  *   interrupt
  *   interrupt-reset
  *
- *   after-start-work
+ *   after-begin-work
  *   after-rewind-work
- *   after-end-work
+ *   after-end-work (res) - res: {elapsedTime: {Number}, interrupts: {Number}}
  *   after-rewind-break
  *   after-end-break
  *
@@ -301,7 +301,10 @@ window.Worksprint.Timer = (function() {
         this._startTimer(this._opts.breakTime);
 
 
-        $(this).triggerHandler('after-end-work');
+        $(this).triggerHandler('after-end-work', [{
+            elapsedTime: this._lastWorkPeriod,
+            interrupts: this._lastInterruptCount
+        }]);
     };
 
     /**

@@ -17,7 +17,7 @@
         border: none;
         background: none;
         font-size: 0.7em;
-        border-bottom: 1px dashed #555;
+        border-bottom: 1px dashed #292929;
         padding: 0;
         margin-left: 40px;
     }
@@ -33,3 +33,28 @@
 .timer .iterrupts {
     font-size: 1.5em;
 }
+
+.results
+{
+    margin-top: 15px;
+}
+    .results table {
+        border-collapse: collapse;
+    }
+    
+        .results table thead th {
+            font-weight: bold;
+        }
+        
+    .results table th, 
+    .results table td {
+        padding: 3px;
+        border: 1px solid #292929;
+    }
+
+    .results table caption {
+        font-size: 1.2em;
+        font-family: 'Georgia', serif;
+        padding: 15px 0;
+        text-align: left;
+    }
