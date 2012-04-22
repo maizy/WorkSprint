@@ -127,8 +127,9 @@ dateFormat.i18n = {
 
 /**
  *
- * @copyright 2011, Nikita Kovaliov <nikita@maizy.ru>
+ * @author Nikita Kovaliov <nikita@maizy.ru>
  * @license GPLv3
+ * @copyright (c) dev.maizy.ru, 2011-2012
  *
  * @required underscore
  * @required underscore.string

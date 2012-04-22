@@ -29,6 +29,7 @@ if (!window.Worksprint.Timer) {
  *
  */
 window.Worksprint.Timer = (function() {
+    "use strict";
 
     var STATES = {
         notwork: 'notwork',
@@ -54,7 +55,7 @@ window.Worksprint.Timer = (function() {
         brk90:  'brk90'
     };
 
-    var t = function(opts) {
+    var t = function Worksprint_Timer(opts) {
 
         var self = this;
 
@@ -73,10 +74,10 @@ window.Worksprint.Timer = (function() {
 
         this._state = this._opts.state;
 
-        this._timerStart = undefined;
-        this._timerOffset = 0;
-        this._timerInterval = undefined;
-        this._timerCountdown = undefined;
+        this._start = undefined;
+        this._offset = 0;
+        this._interval = undefined;
+        this._countdownFrom = undefined;
 
         this._breakTimeoutId = undefined;
 
@@ -86,9 +87,7 @@ window.Worksprint.Timer = (function() {
         this._lastInterruptCount = undefined;
         this._lastBreakPeriod = undefined;
 
-        $(function() {
-            self.init();
-        });
+        $(_.bind(this.init, this));
     };
 
     // -------------------------------------------
@@ -276,7 +275,7 @@ window.Worksprint.Timer = (function() {
 
         this._setState(STATES.notwork);
 
-        this._endTimer();
+        this.pause();
         this.resetIterruptCounter();
 
         $(this).triggerHandler('after-rewind-work');
@@ -289,7 +288,7 @@ window.Worksprint.Timer = (function() {
 
         this._setState(STATES.brk);
 
-        this._lastWorkPeriod = this._endTimer();
+        this._lastWorkPeriod = this.pause();
         this._lastInterruptCount = this.getInterruptCounter();
         this._lastBreakPeriod = undefined;
 
@@ -321,7 +320,7 @@ window.Worksprint.Timer = (function() {
             this._breakTimeoutId = undefined;
         }
 
-        this._endTimer();
+        this.pause();
 
         //restore work params and timer
         this.setInterruptCounter(this._lastInterruptCount);
@@ -336,7 +335,7 @@ window.Worksprint.Timer = (function() {
         window.console && console.debug && console.debug('end break');
 
         this._setState(STATES.notwork);
-        this._lastBreakPeriod = this._endTimer();
+        this._lastBreakPeriod = this.pause();
         this.resetIterruptCounter();
 
         $(this).triggerHandler('after-end-break');
@@ -389,24 +388,24 @@ window.Worksprint.Timer = (function() {
     t.prototype._startTimer = function(countdown, offset) {
         var self = this;
 
-        this._timerStart = Date.now();
-        this._timerCountdown = countdown;
+        this._start = Date.now();
+        this._countdownFrom = countdown;
 
         if (!_.isUndefined(offset) && offset > 0) {
-            this._timerOffset = offset;
+            this._offset = offset;
         } else {
-            this._timerOffset = undefined;
+            this._offset = undefined;
         }
         this._updateDial();
-        this._timerInterval = setInterval(_.bind(this._updateDial, this), 1000);
+        this._interval = setInterval(_.bind(this._updateDial, this), 1000);
 
     };
 
     t.prototype._updateDial = function() {
         var seconds, minutes, visDiv, period;
 
-        if (!this.isTimerCountdown()) {
-            period = this.getTimerSeconds();
+        if (!this.isCountdown()) {
+            period = this.getSeconds();
         } else {
             period = this.getTimerCountdownSeconds();
         }
@@ -433,12 +432,12 @@ window.Worksprint.Timer = (function() {
         }
     };
 
-    t.prototype.getTimerSeconds = function() {
+    t.prototype.getSeconds = function() {
         var self = this;
-        if (!_.isUndefined(this._timerStart)) {
-            var delta = (Date.now() - this._timerStart) / 1000;
-            if (!_.isUndefined(this._timerOffset)) {
-                delta += this._timerOffset;
+        if (!_.isUndefined(this._start)) {
+            var delta = (Date.now() - this._start) / 1000;
+            if (!_.isUndefined(this._offset)) {
+                delta += this._offset;
             }
             return delta;
         }
@@ -447,13 +446,13 @@ window.Worksprint.Timer = (function() {
     };
 
 
-    t.prototype.getTimerCountdown = function() {
-        return this._timerCountdown;
+    t.prototype.getCountdownFrom = function() {
+        return this._countdownFrom;
     };
 
 
-    t.prototype.isTimerCountdown = function() {
-        return !_.isUndefined(this.getTimerCountdown());
+    t.prototype.isCountdown = function() {
+        return !_.isUndefined(this.getCountdownFrom());
     };
 
 
@@ -461,9 +460,9 @@ window.Worksprint.Timer = (function() {
      * @return {undefined|Number}
      */
     t.prototype.getTimerCountdownSeconds = function() {
-        var cd = this.getTimerCountdown();
-        var ts = this.getTimerSeconds();
-        if (!_.isUndefined(ts) && this.isTimerCountdown()) {
+        var cd = this.getCountdownFrom();
+        var ts = this.getSeconds();
+        if (!_.isUndefined(ts) && this.isCountdown()) {
             return Math.max(0, cd - ts);
         }
 
@@ -475,15 +474,15 @@ window.Worksprint.Timer = (function() {
      *
      * @return {Number} - seconds
      */
-    t.prototype._endTimer = function() {
+    t.prototype.pause = function() {
         var self = this;
 
-        var res = this.getTimerSeconds();
-        this._timerStart = undefined;
-        if (!_.isUndefined(this._timerInterval)) {
-            clearInterval(this._timerInterval);
+        var res = this.getSeconds();
+        this._start = undefined;
+        if (!_.isUndefined(this._interval)) {
+            clearInterval(this._interval);
         }
-        this._timerInterval = undefined;
+        this._interval = undefined;
 
         this._updateDial();
 
@@ -494,7 +493,7 @@ window.Worksprint.Timer = (function() {
      *
      * @param mode - TIMER_STATE.*
      */
-    t.prototype._setTimerMode = function(mode) {
+    t.prototype.setTimerMode = function(mode) {
         var self = this;
 
     };

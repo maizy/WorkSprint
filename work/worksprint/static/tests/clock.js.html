@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Clock js simple test</title>
+
+
+    <script type="text/javascript" src="/static/scripts/jquery.dev.js"></script>
+    <script type="text/javascript" src="/static/scripts/underscore.dev.js"></script>
+    <script type="text/javascript" src="/static/scripts/underscore.string.dev.js"></script>
+
+    <script type="text/javascript" src="/static/scripts/test-helper.js"></script>
+        
+    <script type="text/javascript" src="/static/scripts/date.format.js"></script>
+    <script type="text/javascript" src="/static/worksprint/scripts/clock.js"></script>
+
+</head>
+
+<body>
+    <h1>Clock.js Test</h1>
+
+    <div id="debugOutput">
+
+    </div>
+    
+
+<script type="text/javascript">
+    //at global scope
+
+    var testHelper = new TestHelper({
+        debugContainerId: 'debugOutput'
+    });
+
+    var clock1 = new Worksprint.Clock();
+
+    $(clock1).on('begin', function() {
+        testHelper.debug('clock1 begin');
+    });
+
+    $(clock1).on('pause', function() {
+        testHelper.debug('clock1 pause');
+    });
+
+    testHelper.addAction(function() {
+        clock1.begin();
+    }, 'begin');
+
+    testHelper.addAction(function() {
+        clock1.pause();
+    }, 'pause');
+
+
+    testHelper.debug(clock1);
+</script>
+
+
+</body>
+</html>
