@@ -14,19 +14,19 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'sprint',                      # Or path to database file if using sqlite3.
-        'USER': 'sprint',                      # Not used with sqlite3.
-        'PASSWORD': 'sprint',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS' : {
-            'init_command': 'SET storage_engine=INNODB'
-        }
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#        'NAME': 'sprint',                      # Or path to database file if using sqlite3.
+#        'USER': 'sprint',                      # Not used with sqlite3.
+#        'PASSWORD': 'sprint',                  # Not used with sqlite3.
+#        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+#        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+#        'OPTIONS' : {
+#            'init_command': 'SET storage_engine=INNODB'
+#        }
+#    }
+#}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
