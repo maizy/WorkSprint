@@ -84,7 +84,7 @@ window.TestHelper = (function() {
         }
 
         if (this.opts.useConsole) {
-            window.console.debug('Add action{@'+ind+'}. Call as .action('+ind+')');
+            window.console.debug('Add action{@'+ind+'} \''+label+'\'. Call as .action('+ind+')');
         }
     };
 

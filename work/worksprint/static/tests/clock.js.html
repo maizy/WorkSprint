@@ -30,26 +30,45 @@
         debugContainerId: 'debugOutput'
     });
 
+    /** @var {Worksprint.Clock} */
     var clock1 = new Worksprint.Clock();
+
+    var debugAllClockData = function (clock) {
+        testHelper.debug('== clock state ==');
+        testHelper.debug('running: ' + (clock.isRunning() ? 'Y':'N'));
+        testHelper.debug('seconds: ' + clock.getTotalSeconds());
+        testHelper.debug('countdown: from=' + clock.getCountdownFrom() +
+                         ', seconds=' + clock.getTimerCountdownSeconds());
+        testHelper.debug('periods ('+clock.getPeriodsAmount()+'): ' + JSON.stringify(clock.getPeriods()));
+    };
 
     $(clock1).on('begin', function() {
         testHelper.debug('clock1 begin');
+        debugAllClockData(clock1);
     });
 
     $(clock1).on('pause', function() {
         testHelper.debug('clock1 pause');
+        debugAllClockData(clock1);
     });
+
 
     testHelper.addAction(function() {
         clock1.begin();
-    }, 'begin');
+    }, 'begin clock1');
 
     testHelper.addAction(function() {
         clock1.pause();
-    }, 'pause');
+    }, 'pause clock1');
+
+    testHelper.addAction(function() {
+        debugAllClockData(clock1);
+    }, 'get clock1 state');
 
 
     testHelper.debug(clock1);
+
+    //TODO preset unit test: get clock, make periods, get periods, preset periods for new clock, compare
 </script>
 
 
