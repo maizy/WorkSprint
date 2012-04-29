@@ -1,8 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Install mysql db
+#
+# Author: Nikita Kovaliov
 
 # TODO: ask for user, pass, db ...
 # TODO: auto write django configs
 # TODO: install-sqlite.sh
+
+SCRIPT_PATH=$(cd ${0%/*} && echo $PWD/${0##*/})
+PROJECT_ROOT=`dirname "${SCRIPT_PATH}"`
+PROJECT_ROOT=`dirname "${PROJECT_ROOT}"`
+PROJECT_ROOT=`dirname "${PROJECT_ROOT}"`
+
+WEB_ROOT="${PROJECT_ROOT}/src/work"
+
+#activate virtualenv
+source "${PROJECT_ROOT}/bin/activate"
+
 
 
 echo '* Add mysql database and user'
@@ -30,8 +44,6 @@ else
     exit 1
 fi
 
-SCRIPT_PATH=$(cd ${0%/*} && echo $PWD/${0##*/})
-WEB_ROOT="`dirname "$SCRIPT_PATH"`/work"
 
 echo '* Create databases'
 

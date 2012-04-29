@@ -18,7 +18,12 @@ ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-#Project specific
+#virtualenv
+bin/
+include/
+lib/
+local/
 
+#Project specific
 devserver-default-host
 var/
