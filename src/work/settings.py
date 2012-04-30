@@ -53,9 +53,9 @@ USE_L10N = True
 
 # -----------------------------------
 
-PROJECT_ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+PROJECT_ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../'))
 
-WEB_ROOT = os.path.join(PROJECT_ROOT, 'work')
+WEB_ROOT = os.path.join(PROJECT_ROOT, 'src', 'work')
 
 VAR_ROOT = os.path.join(PROJECT_ROOT, 'var')
 
