@@ -23,37 +23,37 @@ Tested on Ubuntu 10.10 Maveric
 
 ## Install worksprint
 
-1. choose parent folder (for example at your home dir)
+A. choose parent folder (for example at your home dir)
 
     cd ~/
 
 
-2. Clone repository
+B. Clone repository
 
     git clone git://github.com/maizy/WorkSprint.git worksprint
 
 
-3. Create & activate virtualenv
+C. Create & activate virtualenv
 
     virtualenv --distribute --python=/usr/bin/python2.7 worksprint
     cd worksprint
     source bin/activate
 
 
-4. install requirements
+D. install requirements
 
     pip install -r requirements.txt
 
-5. install database
+E. install database
 
     src/tools/install-mysql.sh
 
 
-6. run initial migrations
+F. run initial migrations
 
     **TODO**
 
-7. deactivate virtualenv
+G. deactivate virtualenv
 
     deactivate
 
@@ -63,15 +63,15 @@ Tested on Ubuntu 10.10 Maveric
 
 ## System configure (advanced, run as service)
 
-1. add init.d script
+A. add init.d script
 
 **TODO** (see src/sys-conf-examples/etc/init.d/worksprint)
 
-2. configure webserver virtual host (ex. nginx)
+B. configure webserver virtual host (ex. nginx)
 
 **TODO** (see src/sys-conf-examples/etc/nginx/sites-available/worksprint)
 
-3. start fastcgi server, restart webserver
+C. start fastcgi server, restart webserver
 
     service worksprint start
     servive nginx restart
