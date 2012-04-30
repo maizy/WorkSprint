@@ -24,6 +24,7 @@ build/
 include/
 lib/
 local/
+.Python
 
 #Project specific
 devserver-default-host
