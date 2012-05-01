@@ -10,7 +10,7 @@ Proof of concept. Pre-beta.
 ----
 
 
-# Install instructions
+# Install instructions (Linux, Ubuntu, deb-based)
 
 Tested on Ubuntu 10.10 Maveric
 
@@ -75,3 +75,55 @@ C. start fastcgi server, restart webserver
 
     service worksprint start
     servive nginx restart
+
+----
+
+# Install instructions (OS X, MacPorts)
+
+Tested on OS X 10.7.2
+
+## Install pre-requirements
+
+    sudo port install python-27 py27-virtualenv
+    sudo easy_install-2.7 -U virtualenv
+    sudo easy_install-2.7 -U pip
+
+## Install worksprint
+
+A. choose parent folder (for example at your home dir)
+
+    cd ~/
+
+
+B. Clone repository
+
+    git clone git://github.com/maizy/WorkSprint.git worksprint
+
+
+C. Create & activate virtualenv
+
+    virtualenv-2.7 --distribute --python=/opt/local/bin/python2.7 worksprint
+    cd worksprint
+    source bin/activate
+
+
+D. Install requirements
+
+    pip install -r requirements.txt
+
+E. Install database
+
+    src/tools/install-mysql.sh
+
+
+F. Run initial migrations
+
+    **TODO**
+
+G. Deactivate virtualenv
+
+    deactivate
+
+
+## Standalone server
+**TODO**
