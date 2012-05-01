@@ -1,7 +1,9 @@
 Django==1.4
-MySQL-python==1.2.3
+# not needed now
+# MySQL-python==1.2.3
 South==0.7.4
 distribute==0.6.24
 wsgiref==0.1.2
-yolk==0.4.3
+yolk
 flup
+django-jasmine==0.3.2
