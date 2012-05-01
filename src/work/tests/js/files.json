@@ -1,0 +1,10 @@
+{
+    "name": "Worksprint js test suite",
+    "js_files": [
+        "/static/scripts/jquery.dev.js",
+        "/static/scripts/underscore.dev.js",
+        "/static/scripts/underscore.string.dev.js"
+    ],
+    "media_files": [
+    ]
+}

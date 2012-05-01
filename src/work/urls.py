@@ -12,6 +12,9 @@ urlpatterns = patterns('',
 
     #admin
     url(r'^admin/', include(admin.site.urls)),
+
+    #django-jasmine (js tests)
+    url(r'^js-tests/', include('django_jasmine.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()

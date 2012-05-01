@@ -59,6 +59,9 @@ WEB_ROOT = os.path.join(PROJECT_ROOT, 'src', 'work')
 
 VAR_ROOT = os.path.join(PROJECT_ROOT, 'var')
 
+TEST_ROOT = os.path.join(WEB_ROOT, 'tests')
+
+JASMINE_TEST_DIRECTORY = os.path.join(TEST_ROOT, 'js')
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -124,6 +127,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'work.worksprint',
+    'django_jasmine',
 )
 
 # A sample logging configuration. The only tangible logging
