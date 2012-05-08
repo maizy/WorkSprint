@@ -20,6 +20,8 @@ if (!window.Worksprint.Clock) {
  *   pause
  *   finish
  *
+ * @type {Worksprint.Clock}
+ *
  */
 window.Worksprint.Clock = (function() {
 

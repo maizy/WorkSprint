@@ -3,7 +3,9 @@
     "js_files": [
         "/static/scripts/jquery.dev.js",
         "/static/scripts/underscore.dev.js",
-        "/static/scripts/underscore.string.dev.js"
+        "/static/scripts/underscore.string.dev.js",
+
+        "/static/worksprint/scripts/clock.js"
     ],
     "media_files": [
     ]
