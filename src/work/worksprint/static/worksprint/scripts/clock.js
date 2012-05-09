@@ -22,6 +22,12 @@ if (!window.Worksprint.Clock) {
  *
  * @type {Worksprint.Clock}
  *
+ *
+ * @TODO presets
+ * @TODO ms
+ *
+ * @FIXME multiple events with same code not overwriten
+ *
  */
 window.Worksprint.Clock = (function() {
 
@@ -51,7 +57,7 @@ window.Worksprint.Clock = (function() {
         this._totalSeconds = undefined;
         this._countdownEnds = [];
 
-        this._everyNsecondsEvents = {};
+        this._everyNMsEvents = {};
 
         this._state = CLOCK_STATE.pause;
 
@@ -74,9 +80,11 @@ window.Worksprint.Clock = (function() {
     };
 
     // -------------------------------------------
+    // Actions
 
     /**
      *
+     * @return {Worksprint.Clock}
      */
     c.prototype.begin = function() {
         var self = this;
@@ -99,6 +107,11 @@ window.Worksprint.Clock = (function() {
 
         $(this).triggerHandler('begin', [this]);
 
+        _.each(this._everyNMsEvents, function(event, eventCode) {
+            self._activateEveryNMsEvent(eventCode);
+        });
+
+        return this;
     };
 
     /**
@@ -128,14 +141,28 @@ window.Worksprint.Clock = (function() {
 
         $(this).triggerHandler('pause', [this]);
 
+        _.each(this._everyNMsEvents, function(event, eventCode) {
+            self._deactivateEveryNMsEvent(eventCode);
+        });
+
         return this;
     };
 
 
 
     // -------------------------------------------
+    // State getters
+
 
     c.prototype.getTotalSeconds = function() {
+        return Math.round(this.getTotalMs() / 1000);
+    };
+
+
+    c.prototype.getTotalMs = function() {
+        var self = this;
+
+        //FIXME support ms
         var totalSec = this._totalSeconds;
 
         if (_.isUndefined(totalSec) && this.isPaused()) {
@@ -145,10 +172,11 @@ window.Worksprint.Clock = (function() {
         }
 
         if (this.isPaused()) {
-            return totalSec;
+            return totalSec*1000;
         } else {
-            return totalSec + Math.floor( (Date.now() - _.last(this._periods).start) / 1000 );
+            return totalSec*1000 + Date.now() - _.last(this._periods).start;
         }
+
     };
 
     c.prototype.getLastPeriodSeconds = function() {
@@ -188,8 +216,54 @@ window.Worksprint.Clock = (function() {
         return undefined;
     };
 
+    //Events
+
+    /**
+     * Add handler for every N miliseconds events.
+     *
+     * If eventCode exists, it's overwriten, previous
+     * events will breaks.
+     *
+     * For listen event do:
+     * $(clock).on(eventCode, function(clock, stepNumber, eventCode) { ... });
+     *
+     *
+     * @param {String} eventCode
+     * @param {Number} N - ms
+     * @param {Number} startAfterOffset - start fire event after offset, ms
+     *
+     * @return {Worksprint.Clock} - this
+     */
+    c.prototype.addEveryNMsEvent = function(eventCode, N, startAfterOffset) {
+        var self = this;
+
+        startAfterOffset = !_.isUndefined(startAfterOffset) ? startAfterOffset : 0;
+
+        var events = this._everyNMsEvents;
+
+        //stop and remove event if exists
+        if (events[eventCode]) {
+            this._deactivateEveryNMsEvent(eventCode);
+        }
+
+        this._everyNMsEvents[eventCode] = {
+            step: Math.floor(N),
+            offset: Math.floor(startAfterOffset)
+        };
+
+        if (this.isRunning()) {
+            this._activateEveryNMsEvent(eventCode);
+        }
+
+        return this;
+    };
+
+    c.prototype.addEveryNSecondsEvent = function(eventCode, N, startAfterOffset) {
+        return this.addEveryNMsEvent(eventCode, Math.round(N*1000), Math.round(startAfterOffset*1000));
+    };
+
     // -------------------------------------------
-    // Getters, Setters
+    // other Getters, Setters
 
 
     c.prototype.getCountdownFrom = function() {
@@ -219,6 +293,50 @@ window.Worksprint.Clock = (function() {
         return this;
     };
 
+    // -------------------------------------------
+    c.prototype._deactivateEveryNMsEvent = function(eventCode) {
+        var self = this;
+
+        var event = this._everyNMsEvents[eventCode];
+
+        if (event && event._nextTimeout) {
+            clearTimeout(event._nextTimeout);
+            delete event._nextTimeout;
+        }
+
+    };
+
+    c.prototype._activateEveryNMsEvent = function (eventCode) {
+        var self = this;
+        var event = this._everyNMsEvents[eventCode];
+
+        if (event) {
+            if (event._nextTimeout) {
+                clearTimeout(event._nextTimeout);
+            }
+
+            var curTime = this.getTotalMs();
+            var floorTime = curTime;
+            if (event.offset > floorTime) {
+                floorTime = event.offset;
+            }
+            var stepNumber = Math.floor(floorTime / event.step) + 1;
+            var fireAfter = (stepNumber * event.step) - curTime;
+            event._nextTimeout = setTimeout(function() {
+                $(self).triggerHandler(eventCode, [self, stepNumber, eventCode]);
+                self._activateEveryNMsEvent(eventCode);
+
+            }, fireAfter);
+            return true;
+        }
+
+        return false;
+    };
+
+
+    // -------------------------------------------
+
+    //consts
     c.STATE = CLOCK_STATE;
 
     return c;

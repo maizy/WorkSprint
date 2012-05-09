@@ -62,6 +62,16 @@
     }, 'pause clock1');
 
     testHelper.addAction(function() {
+        $(clock1).on('every2000', function() {
+            window.console && console.debug && console.debug(arguments, 'arguments');
+            testHelper.debug('* every2000 event: '+JSON.stringify(_.toArray(arguments).slice(2)));
+        });
+
+        clock1.addEveryNMsEvent('every2000', 2000);
+
+    }, 'add clock1 every 2000ms event');
+
+    testHelper.addAction(function() {
         debugAllClockData(clock1);
     }, 'get clock1 state');
 
