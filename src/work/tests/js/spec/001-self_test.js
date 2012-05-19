@@ -1,5 +1,9 @@
 describe("Self & libs tests", function () {
 
+    it("window should be global object", function () {
+        expect(Function('return this')()).toEqual(window);
+    });
+
     it("$ should be jQuery", function () {
         expect($).toEqual(jQuery);
     });

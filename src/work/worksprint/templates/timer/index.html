@@ -9,9 +9,10 @@
 {% block head_scripts %}
     <script type="text/javascript" src="{{ STATIC_URL }}scripts/date.format.js"></script>
 
-    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/timer.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/result-table.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linker.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/clock.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/timer.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/views/result-table.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linkers/result-table.js"></script>
 {% endblock %}
 
 
@@ -36,23 +37,22 @@
 
 <script type="text/javascript">
 (function() {
-    var root = window;
-
-    if (!root.Worksprint) { root.Worksprint = {}; }
-    if (!root.Worksprint.Instances) { root.Worksprint.Instances = []; }
 
     var ins = {};
 
-    ins.timer = new root.Worksprint.Timer();
-    ins.resultTable = new root.Worksprint.ResultTable();
-    ins.linker = new root.Worksprint.Linker({
+    ins.timer = new Worksprint.Gear.Timer();
+    ins.resultTable = new Worksprint.View.ResultTable();
+    ins.linker = new Worksprint.Linker.ResultTable({
         timer: ins.timer,
         resultTable: ins.resultTable
     });
 
     ins.linker.link();
 
-    root.Worksprint.Instances.push(ins);
+    if (_.isUndefined(Worksprint.Instances)) {
+        Worksprint.Instances = [];
+    }
+    Worksprint.Instances.push(ins);
 
 })();
 </script>

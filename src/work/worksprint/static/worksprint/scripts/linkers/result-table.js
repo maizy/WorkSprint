@@ -1,13 +1,11 @@
-if (!window.Worksprint) { window.Worksprint = {}; }
-if (!window.Worksprint.Linker) {
-
 /**
  * @author Nikita Kovaliov <nikita@maizy.ru>
  * @license GPLv3
+ * @copyright dev.maizy.ru, 2012
  */
-window.Worksprint.Linker = (function() {
+ns('Worksprint.Linker', 'ResultTable', (function() {
 
-    var l = function(opts) {
+    var l = function Worksprint_Linker_ResultTable(opts) {
 
         var self = this;
 
@@ -29,7 +27,7 @@ window.Worksprint.Linker = (function() {
         var rTable = this.resultTable;
 
 
-        $(timer).bind('after-begin-work', _.bind(function() {
+        $(timer).on('after-begin-work', _.bind(function() {
             this._currentTask = {
                 begin: new Date(),
                 end: undefined,
@@ -42,7 +40,7 @@ window.Worksprint.Linker = (function() {
         }, this));
 
 
-        $(timer).bind('after-end-work', _.bind(function(res) {
+        $(timer).on('after-end-work', _.bind(function(event, res) {
             this._currentTask = _.extend(this._currentTask, {
                 end: new Date(),
                 elapsedTime: res.elapsedTime,
@@ -53,7 +51,7 @@ window.Worksprint.Linker = (function() {
         }, this));
 
 
-        $(timer).bind('interrupt', _.bind(function(res) {
+        $(timer).on('interrupt', _.bind(function(event, res) {
             this._currentTask = _.extend(this._currentTask, {
                 interrupts: timer.getInterruptCounter()
             });
@@ -62,12 +60,11 @@ window.Worksprint.Linker = (function() {
         }, this));
 
 
-        $(timer).bind('after-rewind-work', _.bind(function(res) {
+        $(timer).on('after-rewind-work', _.bind(function(event, res) {
             rTable.removeRow(this._currentTask.id);
             this._currentTask = undefined;
         }, this));
     };
 
     return l;
-})();
-}
+})());

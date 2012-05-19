@@ -1,6 +1,3 @@
-if (!window.Worksprint) { window.Worksprint = {}; }
-if (!window.Worksprint.Clock) {
-
 /**
  * Clock
  *
@@ -9,9 +6,9 @@ if (!window.Worksprint.Clock) {
  *
  *  In API Seconds presents as Number (floor round).
  *
- * @author Nikita <nikita@maizy.ru>
+ * @author Nikita Kovaliov <nikita@maizy.ru>
  * @license GPLv3
- * @copyright dev.maizy.ru
+ * @copyright dev.maizy.ru, 2012
  *
  *
  * Events:
@@ -20,23 +17,22 @@ if (!window.Worksprint.Clock) {
  *   pause
  *   finish
  *
- * @type {Worksprint.Clock}
- *
- *
  * @TODO presets
  * @TODO ms
  *
- * @FIXME multiple events with same code not overwriten
- *
  */
-window.Worksprint.Clock = (function() {
+ns('Worksprint.Gear', 'Clock', (function() {
 
     var CLOCK_STATE = {
         pause: 'pause',
         runnig: 'runnig'
     };
 
-    var c = function Worksprint_Clock(opts) {
+    /**
+     * @param opts
+     * @constructor
+     */
+    var c = function Worksprint_Gear_Clock(opts) {
         this._construct(opts);
     };
 
@@ -340,5 +336,4 @@ window.Worksprint.Clock = (function() {
     c.STATE = CLOCK_STATE;
 
     return c;
-})();
-}
+})());

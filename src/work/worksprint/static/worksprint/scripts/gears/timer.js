@@ -1,12 +1,15 @@
-if (!window.Worksprint) { window.Worksprint = {}; }
-if (!window.Worksprint.Timer) {
-
 /**
- * Timer widget js class
+ * Timer gear
  *
- * @author Nikita <nikita@maizy.ru>
+ * @author Nikita Kovaliov <nikita@maizy.ru>
  * @license GPLv3
+ * @copyright dev.maizy.ru, 2012
  *
+ * Constructor Opts:
+ *   wrapClass: {String} - wrapper id
+ *   state: STATES.* - current state
+ *   breakTime: {Numeric} - ms
+ *   workReminderTime: {Numeric} - ms
  *
  * Events:
  *
@@ -26,10 +29,8 @@ if (!window.Worksprint.Timer) {
  *   after-end-work (res) - res: {elapsedTime: {Number}, interrupts: {Number}}
  *   after-rewind-break
  *   after-end-break
- *
  */
-window.Worksprint.Timer = (function() {
-    "use strict";
+ns('Worksprint.Gear', 'Timer', (function() {
 
     var STATES = {
         notwork: 'notwork',
@@ -44,18 +45,11 @@ window.Worksprint.Timer = (function() {
         rewind: { label: 'Oops (undo)'}
     };
 
-    var TIMER_STATE = {
-        notwork: 'notwork',
-        work0: 'work0',
-        work25: 'work25',
-        work50: 'work50',
-        work75: 'work75',
-        work90: 'work90',
-        brk0:   'brk0',
-        brk90:  'brk90'
-    };
-
-    var t = function Worksprint_Timer(opts) {
+    /**
+     * @param opts
+     * @constructor
+     */
+    var t = function Worksprint_Gear_Timer(opts) {
 
         var self = this;
 
@@ -107,8 +101,6 @@ window.Worksprint.Timer = (function() {
         this._$dialDivider = $('.divider', this._$wrap);
 
         this._$interrupts = $('.interrupts', this._$wrap);
-
-        window.console && console.debug && console.debug(this._$wrap, 'this._$wrap');
 
         this._initButtons();
 
@@ -489,20 +481,10 @@ window.Worksprint.Timer = (function() {
         return res;
     };
 
-    /**
-     *
-     * @param mode - TIMER_STATE.*
-     */
-    t.prototype.setTimerMode = function(mode) {
-        var self = this;
-
-    };
-
     // -------------------------------------------
 
     t.STATES = STATES;
     t.BUTTONS = BUTTONS;
     return t;
 
-})();
-}
+})());

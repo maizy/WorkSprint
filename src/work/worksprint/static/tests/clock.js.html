@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head>
+<head>
     <title>Clock js simple test</title>
 
 
@@ -11,7 +11,7 @@
     <script type="text/javascript" src="/static/scripts/test-helper.js"></script>
         
     <script type="text/javascript" src="/static/scripts/date.format.js"></script>
-    <script type="text/javascript" src="/static/worksprint/scripts/clock.js"></script>
+    <script type="text/javascript" src="/static/worksprint/scripts/gears/clock.js"></script>
 
 </head>
 
@@ -62,14 +62,23 @@
     }, 'pause clock1');
 
     testHelper.addAction(function() {
+        $(clock1).off('every2000');
         $(clock1).on('every2000', function() {
-            window.console && console.debug && console.debug(arguments, 'arguments');
             testHelper.debug('* every2000 event: '+JSON.stringify(_.toArray(arguments).slice(2)));
         });
 
         clock1.addEveryNMsEvent('every2000', 2000);
 
     }, 'add clock1 every 2000ms event');
+
+    testHelper.addAction(function() {
+        $(clock1).off('every5000');
+        $(clock1).on('every5000', function() {
+            testHelper.debug('* every5000 event: '+JSON.stringify(_.toArray(arguments).slice(2)));
+        });
+
+        clock1.addEveryNMsEvent('every5000', 5000, 3500);
+    }, 'add clock1 every 5000ms + 3500 offset event');
 
     testHelper.addAction(function() {
         debugAllClockData(clock1);

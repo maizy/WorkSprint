@@ -1,11 +1,9 @@
-if (!window.Worksprint) { window.Worksprint = {}; }
-if (!window.Worksprint.ResultTable) {
-
 /**
- * @author Nikita Kovaliov <nikita@maizy.ru>
+ * @author Nikita <nikita@maizy.ru>
  * @license GPLv3
+ * @copyright dev.maizy.ru, 2012
  */
-window.Worksprint.ResultTable = (function() {
+ns('Worksprint.View', 'ResultTable', (function() {
 
     var _COLS = {
         id: {label: '#'},
@@ -18,7 +16,7 @@ window.Worksprint.ResultTable = (function() {
     };
 
 
-    var r = function(opts) {
+    var r = function Worksprint_Linker_ResultTable(opts) {
 
         var self = this;
 
@@ -157,5 +155,4 @@ window.Worksprint.ResultTable = (function() {
 
 
     return r;
-})();
-}
+})());

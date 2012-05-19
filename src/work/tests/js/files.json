@@ -5,7 +5,10 @@
         "/static/scripts/underscore.dev.js",
         "/static/scripts/underscore.string.dev.js",
 
-        "/static/worksprint/scripts/clock.js"
+
+        "/static/scripts/common.js",
+
+        "/static/worksprint/scripts/gears/clock.js"
     ],
     "media_files": [
     ]
