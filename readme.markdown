@@ -16,7 +16,7 @@ Tested on Ubuntu 10.10 Maveric
 
 ## Install pre-requirements
 
-    sudo apt-get install python-2.7 python2.7-dev libmysqlclient-dev \
+    sudo apt-get install python2.7 python2.7-dev libmysqlclient-dev \
                          python-setuptools build-essential
     sudo easy_install-2.7 -U virtualenv
     sudo easy_install-2.7 -U pip

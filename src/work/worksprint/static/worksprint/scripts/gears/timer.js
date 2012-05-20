@@ -13,22 +13,27 @@
  *
  * Events:
  *
- *   push-button (code, $button) - push any button
- *   push-button-[some] ($button) - push button with code 'some'
+ *   action(code) - action with 'code' happens
  *
- *   change-state
- *   change-state-from-[prevState]
- *   change-state-to-[state]
- *   change-state-from-[prevState]-to-[state]
+ *   play()
+ *   undo()
+ *   stop()
+ *   pause()
  *
- *   interrupt
- *   interrupt-reset
+ *   change-state(prevState, state)
+ *   change-state-from-[prevState](state)
+ *   change-state-to-[state](prevState)
+ *   change-state-from-[prevState]-to-[state]()
  *
- *   after-begin-work
- *   after-rewind-work
- *   after-end-work (res) - res: {elapsedTime: {Number}, interrupts: {Number}}
- *   after-rewind-break
- *   after-end-break
+ *   interrupt-updated(before, after)
+ *   interrupt-add()
+ *   interrupt-reset()
+ *
+ *   after-begin-work()
+ *   after-rewind-work()
+ *   after-end-work(res) - res: {elapsedTime: {Number}, interrupts: {Number}}
+ *   after-rewind-break()
+ *   after-end-break()
  */
 ns('Worksprint.Gear', 'Timer', (function() {
 
@@ -38,12 +43,6 @@ ns('Worksprint.Gear', 'Timer', (function() {
         work: 'work'
     };
 
-    var BUTTONS = {
-        play: { label: 'Run'},
-        stop: { label: 'Stop'},
-        interrupt: { label: 'Interrupted'},
-        rewind: { label: 'Oops (undo)'}
-    };
 
     /**
      * @param opts
@@ -56,15 +55,11 @@ ns('Worksprint.Gear', 'Timer', (function() {
         this._opts = _.extend(
             //def opts
             {
-                wrapClass: 'timer',
                 state: STATES.notwork,
                 breakTime: 60*5,
                 workReminderTime: 60*15
             },
             opts || {});
-
-        this._$wrap = undefined;
-        this._buttons = {};
 
         this._state = this._opts.state;
 
@@ -72,8 +67,6 @@ ns('Worksprint.Gear', 'Timer', (function() {
         this._offset = 0;
         this._interval = undefined;
         this._countdownFrom = undefined;
-
-        this._breakTimeoutId = undefined;
 
         this._interrupts = 0;
 
@@ -84,344 +77,108 @@ ns('Worksprint.Gear', 'Timer', (function() {
         $(_.bind(this.init, this));
     };
 
-    // -------------------------------------------
-    // init, refresh
-
     /**
      * Init
      */
     t.prototype.init = function() {
-        var opts = this._opts;
-
-        this._$wrap = $('div.'+opts.wrapClass+':first');
-        this._$debug = $('div.debug', this._$wrap);
-
-        this._$dialMinutes = $('.minutes', this._$wrap);
-        this._$dialSeconds = $('.seconds', this._$wrap);
-        this._$dialDivider = $('.divider', this._$wrap);
-
-        this._$interrupts = $('.interrupts', this._$wrap);
-
-        this._initButtons();
-
-        $(this).bind('change-state', _.bind(this._refreshButtons, this));
-        this._refreshButtons();
-
-        this._bindButtonsTransitions();
-        $(this).bind('push-button-interrupt', _.bind(this.addInterrupt, this));
-
-        this._updateDial();
-        this._updateIterrupts();
-    };
-
-    /**
-     *
-     */
-    t.prototype._initButtons = function() {
         var self = this;
-        var $butWrap = $('div.buttons');
-        var $butList = $('<ul/>');
-        _.each(BUTTONS, function(setup, code) {
-            var $btn = $('<button/>');
-            var $btnLi = $('<li/>');
-
-            $btn.addClass(code+'_button')
-                .text(setup.label)
-                .prop('disabled', true);
-
-            $btn.click(function() {
-                $(self).triggerHandler('push-button-'+code, [$btn]);
-                $(self).triggerHandler('push-button', [code, $btn]);
-            });
-
-            $btnLi.append($btn);
-            $butList.append($btnLi);
-
-            this._buttons[code] = $btn;
-        }, this);
-
-        $butWrap.append($butList);
-
-        return $butWrap;
     };
 
-    /**
-     *
-     */
-    t.prototype._bindButtonsTransitions = function() {
-
+    t.prototype.setInterruptCounter = function(cnt) {
         var self = this;
-
-        $(self).bind('push-button-play', function() {
-            var curState = self.getState();
-            if (curState == STATES.notwork) {
-                self.beginWork();
-            }
-        });
-
-        $(self).bind('push-button-rewind', function() {
-            var curState = self.getState();
-            if (curState == STATES.brk) {
-                self.rewindBreak();
-            } else if (curState == STATES.work) {
-                self.rewindWork();
-            }
-        });
-
-        $(self).bind('push-button-stop', function() {
-            var curState = self.getState();
-            if (curState == STATES.work) {
-                self.endWork();
-            } else if (curState == STATES.brk) {
-                self.endBreak();
-            }
-        });
+        var before = this.getInterruptCounter();
+        this._interrupts = Math.max(0, cnt);
+        $(this).triggerHandler('interrupt-updated', [before, this._interrupts]);
+        return this;
     };
 
-
-
-
-    /**
-     *
-     */
-    t.prototype._refreshButtons = function() {
-        var self = this;
-
-        var state = this.getState();
-
-        var enabledButtons = [];
-
-        switch (state) {
-
-            case STATES.notwork:
-                enabledButtons.push('play');
-
-                break;
-
-            case STATES.work:
-                enabledButtons.push('rewind', 'stop', 'interrupt');
-
-                break;
-
-            case STATES.brk:
-                enabledButtons.push('rewind', 'stop');
-
-                break;
-        }
-
-        _.each(BUTTONS, function(button, code) {
-            var enable = _.contains(enabledButtons, code);
-            this._buttons[code].prop('disabled', !enable);
-        }, this);
-    };
 
     // -------------------------------------------
-    // states
+    // high-level actions (API)
 
-    t.prototype._setState = function(state) {
+    t.prototype.play = function() {
         var self = this;
-
-        if (_.contains(STATES, state)) {
-            var prevState = this.getState();
-            this._state = state;
-
-            window.console && console.debug && console.debug(
-                'change-state from '+prevState+' to '+state);
-
-            $(this).triggerHandler('change-state-from-'+prevState+'-to-'+state);
-            $(this).triggerHandler('change-state-to-'+state, [prevState]);
-            $(this).triggerHandler('change-state-from-'+prevState, [state]);
-            $(this).triggerHandler('change-state', [prevState, state]);
+        var curState = this.getState();
+        if (curState == STATES.notwork) {
+            this._beginWork();
         }
+        $(this).triggerHandler('play');
+        $(this).triggerHandler('action', ['play']);
     };
 
-     /**
+    t.prototype.undo = function() {
+        var self = this;
+        var curState = self.getState();
+        if (curState == STATES.brk) {
+            this._undoBreak();
+        } else if (curState == STATES.work) {
+            this._undoWork();
+        }
+        $(this).triggerHandler('undo');
+        $(this).triggerHandler('action', ['undo']);
+
+    };
+
+    t.prototype.stop = function() {
+        var self = this;
+        var curState = self.getState();
+        if (curState == STATES.work) {
+            this._endWork();
+        } else if (curState == STATES.brk) {
+            this._endBreak();
+        }
+        $(this).triggerHandler('stop');
+        $(this).triggerHandler('action', ['stop']);
+    };
+
+    /**
+     *
+     * @return {Number} - seconds
+     */
+    t.prototype.pause = function() {
+        var self = this;
+
+        var res = this.getSeconds();
+        this._start = undefined;
+        if (!_.isUndefined(this._interval)) {
+            clearInterval(this._interval);
+        }
+        this._interval = undefined;
+
+        $(this).triggerHandler('pause');
+        $(this).triggerHandler('action', ['pause']);
+
+        return res;
+    };
+
+    t.prototype.addInterrupt = function() {
+        var self = this;
+        this._interrupts += 1;
+        window.console && console.debug && console.debug('add interrupt');
+
+        $(this).triggerHandler('interrupt-add');
+        $(this).triggerHandler('interrupt-updated', [this._interrupts-1, this._interrupts]);
+    };
+
+    t.prototype.resetInterruptCounter = function() {
+        var self = this;
+        var before = this.getInterruptCounter();
+        this._interrupts = 0;
+
+        $(this).triggerHandler('interrupt-reset', [this.getInterruptCounter()]);
+        $(this).triggerHandler('interrupt-updated', [before, this._interrupts]);
+
+        return this;
+    };
+
+
+    // -------------------------------------------
+
+    /**
      * Current state
      */
     t.prototype.getState = function() {
         return this._state;
-    };
-
-    // -------------------------------------------
-    //actions (API)
-
-    t.prototype.beginWork = function() {
-        var self = this;
-        window.console && console.debug && console.debug('begin work');
-
-        this._setState(STATES.work);
-
-        this._startTimer();
-        this.resetIterruptCounter();
-
-        this._lastWorkPeriod = undefined;
-        this._lastInterruptCount = undefined;
-
-        $(this).triggerHandler('after-begin-work');
-
-    };
-
-    t.prototype.rewindWork = function() {
-        var self = this;
-        window.console && console.debug && console.debug('rewind work');
-
-        this._setState(STATES.notwork);
-
-        this.pause();
-        this.resetIterruptCounter();
-
-        $(this).triggerHandler('after-rewind-work');
-
-    };
-
-    t.prototype.endWork/* and have a break */ = function() {
-        var self = this;
-        window.console && console.debug && console.debug('end work');
-
-        this._setState(STATES.brk);
-
-        this._lastWorkPeriod = this.pause();
-        this._lastInterruptCount = this.getInterruptCounter();
-        this._lastBreakPeriod = undefined;
-
-        this._breakTimeoutId = setTimeout(
-            _.bind(this.endBreak, this),
-            this._opts.breakTime*1000
-        );
-
-        this._startTimer(this._opts.breakTime);
-
-
-        $(this).triggerHandler('after-end-work', [{
-            elapsedTime: this._lastWorkPeriod,
-            interrupts: this._lastInterruptCount
-        }]);
-    };
-
-    /**
-     *
-     */
-    t.prototype.rewindBreak /* and continue work sprint*/ = function() {
-        var self = this;
-        window.console && console.debug && console.debug('rewind break (back to work)');
-
-        this._setState(STATES.work);
-
-        if (!_.isUndefined(this._breakTimeoutId)) {
-            clearTimeout(this._breakTimeoutId);
-            this._breakTimeoutId = undefined;
-        }
-
-        this.pause();
-
-        //restore work params and timer
-        this.setInterruptCounter(this._lastInterruptCount);
-        this._startTimer(undefined, this._lastWorkPeriod);
-
-        $(this).triggerHandler('after-rewind-break');
-    };
-
-
-    t.prototype.endBreak = function() {
-        var self = this;
-        window.console && console.debug && console.debug('end break');
-
-        this._setState(STATES.notwork);
-        this._lastBreakPeriod = this.pause();
-        this.resetIterruptCounter();
-
-        $(this).triggerHandler('after-end-break');
-    };
-
-
-    t.prototype.addInterrupt = function() {
-        this._interrupts += 1;
-        window.console && console.debug && console.debug('add interrupt');
-
-        $(this).triggerHandler('interrupt', [this.getInterruptCounter()]);
-        this._updateIterrupts();
-    };
-
-
-    // -------------------------------------------
-
-
-    t.prototype.resetIterruptCounter = function() {
-        $(this).triggerHandler('interrupt-reset', [this.getInterruptCounter()]);
-        this._interrupts = 0;
-        this._updateIterrupts();
-        return this;
-    };
-
-    t.prototype.setInterruptCounter = function(cnt) {
-        this._interrupts = Math.max(0, cnt);
-        this._updateIterrupts();
-        return this;
-    };
-
-    t.prototype.getInterruptCounter = function() {
-        return this._interrupts;
-    };
-
-    t.prototype._updateIterrupts = function() {
-        this._$interrupts.text(_.pad('', this.getInterruptCounter(), "'"));
-    };
-
-
-
-    // -------------------------------------------
-    // timer
-
-    /**
-     *
-     * @param countdown - in seconds
-     * @param offset - in seconds
-     */
-    t.prototype._startTimer = function(countdown, offset) {
-        var self = this;
-
-        this._start = Date.now();
-        this._countdownFrom = countdown;
-
-        if (!_.isUndefined(offset) && offset > 0) {
-            this._offset = offset;
-        } else {
-            this._offset = undefined;
-        }
-        this._updateDial();
-        this._interval = setInterval(_.bind(this._updateDial, this), 1000);
-
-    };
-
-    t.prototype._updateDial = function() {
-        var seconds, minutes, visDiv, period;
-
-        if (!this.isCountdown()) {
-            period = this.getSeconds();
-        } else {
-            period = this.getTimerCountdownSeconds();
-        }
-
-        if (_.isUndefined(period)) {
-            seconds = 0;
-            minutes = 0;
-            visDiv = true;
-
-        } else {
-            period = Math.round(period);
-            seconds = period % 60;
-            minutes = Math.floor(period / 60);
-            visDiv = period % 2 == 0;
-        }
-
-
-        this._$dialMinutes.text(_.pad(minutes, 2, '0'));
-        this._$dialSeconds.text(_.pad(seconds, 2, '0'));
-        if (visDiv) {
-            this._$dialDivider.removeClass('unvisible');
-        } else {
-            this._$dialDivider.addClass('unvisible');
-        }
     };
 
     t.prototype.getSeconds = function() {
@@ -452,6 +209,7 @@ ns('Worksprint.Gear', 'Timer', (function() {
      * @return {undefined|Number}
      */
     t.prototype.getTimerCountdownSeconds = function() {
+        var self = this;
         var cd = this.getCountdownFrom();
         var ts = this.getSeconds();
         if (!_.isUndefined(ts) && this.isCountdown()) {
@@ -461,30 +219,150 @@ ns('Worksprint.Gear', 'Timer', (function() {
         return undefined;
     };
 
+    t.prototype.getInterruptCounter = function() {
+        return this._interrupts;
+    };
+
+    // -------------------------------------------
+    // low-level actions
+
+    t.prototype._beginWork = function() {
+        var self = this;
+        window.console && console.debug && console.debug('begin work');
+
+        this._setState(STATES.work);
+
+        this._startTimer();
+        this.resetInterruptCounter();
+
+        this._lastWorkPeriod = undefined;
+        this._lastInterruptCount = undefined;
+
+        $(this).triggerHandler('after-begin-work');
+
+    };
+
+    t.prototype._undoWork = function() {
+        var self = this;
+        window.console && console.debug && console.debug('rewind work');
+
+        this._setState(STATES.notwork);
+
+        this.pause();
+        this.resetInterruptCounter();
+
+        $(this).triggerHandler('after-rewind-work');
+
+    };
+
+    t.prototype._endWork/* and have a break */ = function() {
+        var self = this;
+        window.console && console.debug && console.debug('end work');
+
+        this._setState(STATES.brk);
+
+        this._lastWorkPeriod = this.pause();
+        this._lastInterruptCount = this.getInterruptCounter();
+        this._lastBreakPeriod = undefined;
+
+        this._breakTimeoutId = setTimeout(
+            _.bind(this._endBreak, this),
+            this._opts.breakTime*1000
+        );
+
+        this._startTimer(this._opts.breakTime);
+
+
+        $(this).triggerHandler('after-end-work', [{
+            elapsedTime: this._lastWorkPeriod,
+            interrupts: this._lastInterruptCount
+        }]);
+    };
 
     /**
      *
-     * @return {Number} - seconds
      */
-    t.prototype.pause = function() {
+    t.prototype._undoBreak /* and continue work sprint*/ = function() {
+        var self = this;
+        window.console && console.debug && console.debug('rewind break (back to work)');
+
+        this._setState(STATES.work);
+
+        if (!_.isUndefined(this._breakTimeoutId)) {
+            clearTimeout(this._breakTimeoutId);
+            this._breakTimeoutId = undefined;
+        }
+
+        this.pause();
+
+        //restore work params and timer
+        this.setInterruptCounter(this._lastInterruptCount);
+        this._startTimer(undefined, this._lastWorkPeriod);
+
+        $(this).triggerHandler('after-rewind-break');
+    };
+
+
+    t.prototype._endBreak = function() {
+        var self = this;
+        window.console && console.debug && console.debug('end break');
+
+        this._setState(STATES.notwork);
+        this._lastBreakPeriod = this.pause();
+        this.resetInterruptCounter();
+
+        $(this).triggerHandler('after-end-break');
+    };
+
+
+
+
+
+    // -------------------------------------------
+
+    /**
+     *
+     * @param countdown - in seconds
+     * @param offset - in seconds
+     */
+    t.prototype._startTimer = function(countdown, offset) {
         var self = this;
 
-        var res = this.getSeconds();
-        this._start = undefined;
-        if (!_.isUndefined(this._interval)) {
-            clearInterval(this._interval);
+        this._start = Date.now();
+        this._countdownFrom = countdown;
+
+        if (!_.isUndefined(offset) && offset > 0) {
+            this._offset = offset;
+        } else {
+            this._offset = undefined;
         }
-        this._interval = undefined;
+        this._interval = setInterval(function() {
+            $(self).triggerHandler('tick');
+        }, 1000);
 
-        this._updateDial();
+    };
 
-        return res;
+    t.prototype._setState = function(state) {
+        var self = this;
+
+        if (_.contains(STATES, state)) {
+            var prevState = this.getState();
+            this._state = state;
+
+            window.console && console.debug && console.debug(
+                'change-state from '+prevState+' to '+state);
+
+            $(this).triggerHandler('change-state-from-'+prevState+'-to-'+state);
+            $(this).triggerHandler('change-state-to-'+state, [prevState]);
+            $(this).triggerHandler('change-state-from-'+prevState, [state]);
+            $(this).triggerHandler('change-state', [prevState, state]);
+        }
     };
 
     // -------------------------------------------
 
     t.STATES = STATES;
-    t.BUTTONS = BUTTONS;
+
     return t;
 
 })());

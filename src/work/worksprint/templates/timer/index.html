@@ -11,8 +11,12 @@
 
     <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/clock.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/timer.js"></script>
+
     <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/views/result-table.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/views/timer.js"></script>
+
     <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linkers/result-table.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linkers/timer.js"></script>
 {% endblock %}
 
 
@@ -40,18 +44,27 @@
 
     var ins = {};
 
-    ins.timer = new Worksprint.Gear.Timer();
+    ins.timerGear = new Worksprint.Gear.Timer();
+    ins.timerView = new Worksprint.View.Timer();
     ins.resultTable = new Worksprint.View.ResultTable();
-    ins.linker = new Worksprint.Linker.ResultTable({
-        timer: ins.timer,
+
+    ins.timerLinker = new Worksprint.Linker.Timer({
+        timer: ins.timerGear,
+        timerView: ins.timerView
+    });
+
+    ins.resultTableLiker = new Worksprint.Linker.ResultTable({
+        timer: ins.timerGear,
         resultTable: ins.resultTable
     });
 
-    ins.linker.link();
+    $(function() {
+        ins.timerLinker.link();
+        ins.resultTableLiker.link();
+    });
 
-    if (_.isUndefined(Worksprint.Instances)) {
-        Worksprint.Instances = [];
-    }
+    ns('Worksprint', 'Instances', []);
+    window.console && console.debug && console.debug(Worksprint, 'Worksprint');
     Worksprint.Instances.push(ins);
 
 })();

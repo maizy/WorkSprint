@@ -1,4 +1,4 @@
-describe("clock.js tests", function () {
+describe("clock gear tests", function () {
 
     it("should create new interval on begin()", function () {
         var clock = new Worksprint.Gear.Clock();

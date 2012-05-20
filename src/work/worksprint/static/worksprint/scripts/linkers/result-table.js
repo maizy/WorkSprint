@@ -41,6 +41,9 @@ ns('Worksprint.Linker', 'ResultTable', (function() {
 
 
         $(timer).on('after-end-work', _.bind(function(event, res) {
+            if (!this._currentTask) {
+                return;
+            }
             this._currentTask = _.extend(this._currentTask, {
                 end: new Date(),
                 elapsedTime: res.elapsedTime,
@@ -51,17 +54,22 @@ ns('Worksprint.Linker', 'ResultTable', (function() {
         }, this));
 
 
-        $(timer).on('interrupt', _.bind(function(event, res) {
+        $(timer).on('interrupt-updated', _.bind(function(event, before, after) {
+            if (!this._currentTask) {
+                return;
+            }
             this._currentTask = _.extend(this._currentTask, {
-                interrupts: timer.getInterruptCounter()
+                interrupts: after
             });
 
             rTable.addOrUpdateRow(this._currentTask);
         }, this));
 
 
-        $(timer).on('after-rewind-work', _.bind(function(event, res) {
-            rTable.removeRow(this._currentTask.id);
+        $(timer).on('after-rewind-work', _.bind(function(event) {
+            if (this._currentTask) {
+                rTable.removeRow(this._currentTask.id);
+            }
             this._currentTask = undefined;
         }, this));
     };

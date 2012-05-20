@@ -1,4 +1,4 @@
-describe("Self & libs tests", function () {
+describe("common.js tests", function () {
 
     var testConstructor = function () {};
     var testConstructor2 = function () {};
