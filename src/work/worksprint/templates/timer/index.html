@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+
+
+{% block head_css %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}worksprint/css/timer.css" />
+{% endblock %}
+
+{% block head_scripts %}
+    <script type="text/javascript" src="{{ STATIC_URL }}scripts/date.format.js"></script>
+
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/clock.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/gears/timer.js"></script>
+
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/views/result-table.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/views/timer.js"></script>
+
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linkers/result-table.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}worksprint/scripts/linkers/timer.js"></script>
+{% endblock %}
+
+
+
+{% block content%}
+{% spaceless %}
+<div class="timer">
+    <div class="buttons"></div>
+
+    <div class="dial">
+        <span class="minutes">--</span>
+        <span class="divider">:</span>
+        <span class="seconds">--</span>
+    </div>
+    <div class="interrupts"></div>
+
+    <div class="debug"></div>
+
+    <div class="results"></div>
+</div>
+{% endspaceless %}
+
+<script type="text/javascript">
+(function() {
+
+    var ins = {};
+
+    ins.timerGear = new Worksprint.Gear.Timer();
+    ins.timerView = new Worksprint.View.Timer();
+    ins.resultTable = new Worksprint.View.ResultTable();
+
+    ins.timerLinker = new Worksprint.Linker.Timer({
+        timer: ins.timerGear,
+        timerView: ins.timerView
+    });
+
+    ins.resultTableLiker = new Worksprint.Linker.ResultTable({
+        timer: ins.timerGear,
+        resultTable: ins.resultTable
+    });
+
+    $(function() {
+        ins.timerLinker.link();
+        ins.resultTableLiker.link();
+    });
+
+    ns('Worksprint', 'Instances', []);
+    window.console && console.debug && console.debug(Worksprint, 'Worksprint');
+    Worksprint.Instances.push(ins);
+
+})();
+</script>
+{% endblock %}

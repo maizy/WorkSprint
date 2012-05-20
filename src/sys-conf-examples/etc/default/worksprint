@@ -1,0 +1,17 @@
+# worksprint root dir
+WORKSPRINT_ROOT="/path/to/worksprint"
+
+# worksprint django dir
+# WORKSPRINT_WEBROOT="${WORKSPRINT_ROOT}/src/work"
+
+# please make sure this is NOT root
+# local user prefered, www-data accepted
+RUN_AS='www-data'
+
+# maximum requests before fast-cgi process respawns
+# (a.k.a. get killed and let live)
+# MAXREQUESTS=1000
+
+# default locale (note that some of python 
+# os.path functions depends on this)
+# SYSLANG='en_US.UTF-8'

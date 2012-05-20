@@ -1,0 +1,15 @@
+{
+    "name": "Worksprint js test suite",
+    "js_files": [
+        "/static/scripts/jquery.dev.js",
+        "/static/scripts/underscore.dev.js",
+        "/static/scripts/underscore.string.dev.js",
+
+
+        "/static/scripts/common.js",
+
+        "/static/worksprint/scripts/gears/clock.js"
+    ],
+    "media_files": [
+    ]
+}

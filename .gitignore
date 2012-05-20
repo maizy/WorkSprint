@@ -1,4 +1,31 @@
+# python
 *.py[co]
-.idea
+
+# IDE
+.idea/
+.project/
+
+# Mac OS X junk
 .AppleDouble
+.DS_Store
+Icon?
+.Spotlight-V100
+.Trashes
+
+
+# Windows junk
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+#virtualenv
+bin/
+build/
+include/
+lib/
+local/
+.Python
+
+#Project specific
 devserver-default-host
+var/
