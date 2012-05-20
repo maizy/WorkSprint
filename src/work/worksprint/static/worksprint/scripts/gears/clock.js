@@ -5,20 +5,21 @@
  *  - timer
  *
  *  In API Seconds presents as Number (floor round).
+ *  @TODO ms
+ *
+ * Constructor opts:
+ *  - countdownFrom
+ *  - @TODO presets
+ *
+ * Events:
+ *
+ *  - begin()
+ *  - pause()
+ *  - [everyMsEventCode](clock, stepNumber, eventCode)
  *
  * @author Nikita Kovaliov <nikita@maizy.ru>
  * @license GPLv3
  * @copyright dev.maizy.ru, 2012
- *
- *
- * Events:
- *
- *   begin
- *   pause
- *   finish
- *
- * @TODO presets
- * @TODO ms
  *
  */
 ns('Worksprint.Gear', 'Clock', (function() {
@@ -197,14 +198,27 @@ ns('Worksprint.Gear', 'Clock', (function() {
     };
 
     /**
-     * @return {undefined|Number}
+     * @return {undefined|Number} - seconds
      */
     c.prototype.getTimerCountdownSeconds = function() {
+        var self = this;
+        var ms = this.getTimerCountdownMs();
+        if (!_.isUndefined(ms)) {
+            ms = Math.round(ms / 1000);
+        }
+
+        return ms;
+    };
+
+    /**
+     * @return {undefined|Number} - ms
+     */
+    c.prototype.getTimerCountdownMs = function() {
 
         //FIXME
 
         var cd = this.getCountdownFrom();
-        var ts = this.getTotalSeconds();
+        var ts = this.getTotalMs();
         if (!_.isUndefined(ts) && this.isCountdown()) {
             return Math.max(0, cd - ts);
         }

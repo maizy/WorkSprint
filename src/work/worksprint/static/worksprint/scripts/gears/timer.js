@@ -18,7 +18,6 @@
  *   play()
  *   undo()
  *   stop()
- *   pause()
  *
  *   change-state(prevState, state)
  *   change-state-from-[prevState](state)
@@ -56,23 +55,31 @@ ns('Worksprint.Gear', 'Timer', (function() {
             //def opts
             {
                 state: STATES.notwork,
-                breakTime: 60*5,
+                breakTime: 10,
                 workReminderTime: 60*15
             },
             opts || {});
 
         this._state = this._opts.state;
 
+        /** @type {Worksprint.Gear.Clock} */
+        this._workClock = undefined;
+
+        /** @type {Worksprint.Gear.Clock} */
+        this._breakClock = undefined;
+
+        /** @type {Worksprint.Gear.Clock} */
+        this._currentClock = undefined;
+
+
+
         this._start = undefined;
         this._offset = 0;
-        this._interval = undefined;
         this._countdownFrom = undefined;
 
         this._interrupts = 0;
 
-        this._lastWorkPeriod = undefined;
         this._lastInterruptCount = undefined;
-        this._lastBreakPeriod = undefined;
 
         $(_.bind(this.init, this));
     };
@@ -131,25 +138,6 @@ ns('Worksprint.Gear', 'Timer', (function() {
         $(this).triggerHandler('action', ['stop']);
     };
 
-    /**
-     *
-     * @return {Number} - seconds
-     */
-    t.prototype.pause = function() {
-        var self = this;
-
-        var res = this.getSeconds();
-        this._start = undefined;
-        if (!_.isUndefined(this._interval)) {
-            clearInterval(this._interval);
-        }
-        this._interval = undefined;
-
-        $(this).triggerHandler('pause');
-        $(this).triggerHandler('action', ['pause']);
-
-        return res;
-    };
 
     t.prototype.addInterrupt = function() {
         var self = this;
@@ -182,13 +170,9 @@ ns('Worksprint.Gear', 'Timer', (function() {
     };
 
     t.prototype.getSeconds = function() {
-        var self = this;
-        if (!_.isUndefined(this._start)) {
-            var delta = (Date.now() - this._start) / 1000;
-            if (!_.isUndefined(this._offset)) {
-                delta += this._offset;
-            }
-            return delta;
+        var clock = this._currentClock;
+        if (clock) {
+            return clock.getTotalSeconds();
         }
 
         return undefined;
@@ -196,12 +180,18 @@ ns('Worksprint.Gear', 'Timer', (function() {
 
 
     t.prototype.getCountdownFrom = function() {
-        return this._countdownFrom;
+        var clock = this._currentClock;
+        if (clock) {
+            return clock.getCountdownFrom();
+        }
+
+        return undefined;
     };
 
 
     t.prototype.isCountdown = function() {
-        return !_.isUndefined(this.getCountdownFrom());
+        var clock = this._currentClock;
+        return clock && clock.isCountdown();
     };
 
 
@@ -209,11 +199,9 @@ ns('Worksprint.Gear', 'Timer', (function() {
      * @return {undefined|Number}
      */
     t.prototype.getTimerCountdownSeconds = function() {
-        var self = this;
-        var cd = this.getCountdownFrom();
-        var ts = this.getSeconds();
-        if (!_.isUndefined(ts) && this.isCountdown()) {
-            return Math.max(0, cd - ts);
+        var clock = this._currentClock;
+        if (clock && clock.isCountdown()) {
+            return clock.getTimerCountdownSeconds();
         }
 
         return undefined;
@@ -226,61 +214,104 @@ ns('Worksprint.Gear', 'Timer', (function() {
     // -------------------------------------------
     // low-level actions
 
+    /**
+     *
+     * (notwork)->Run
+     * @private
+     */
     t.prototype._beginWork = function() {
         var self = this;
         window.console && console.debug && console.debug('begin work');
 
         this._setState(STATES.work);
 
-        this._startTimer();
-        this.resetInterruptCounter();
 
-        this._lastWorkPeriod = undefined;
-        this._lastInterruptCount = undefined;
+        var clock = new Worksprint.Gear.Clock();
+
+        $(clock).on('timer-tick', _.bind(this._tick, this));
+        clock.addEveryNMsEvent('timer-tick', 1000);
+
+        clock.begin();
+        this._workClock = clock;
+        this._currentClock = clock;
+        this._breakClock = undefined;
+
+        //TODO collect all sprints ?
+
+        this.resetInterruptCounter();
 
         $(this).triggerHandler('after-begin-work');
 
     };
 
+    /**
+     *
+     * Run->(work)->Undo
+     * @private
+     */
     t.prototype._undoWork = function() {
         var self = this;
         window.console && console.debug && console.debug('rewind work');
 
         this._setState(STATES.notwork);
 
-        this.pause();
+        if (this._workClock) {
+            this._workClock.pause();
+            this._workClock = undefined;
+            this._currentClock = undefined;
+        }
+
         this.resetInterruptCounter();
 
         $(this).triggerHandler('after-rewind-work');
 
     };
 
+    /**
+     *
+     * Run->(work)->Stop
+     * @private
+     */
     t.prototype._endWork/* and have a break */ = function() {
         var self = this;
         window.console && console.debug && console.debug('end work');
 
         this._setState(STATES.brk);
 
-        this._lastWorkPeriod = this.pause();
         this._lastInterruptCount = this.getInterruptCounter();
-        this._lastBreakPeriod = undefined;
 
-        this._breakTimeoutId = setTimeout(
-            _.bind(this._endBreak, this),
-            this._opts.breakTime*1000
-        );
+        if (!this._workClock) {
+            throw 'Work clock is missing';
+        }
 
-        this._startTimer(this._opts.breakTime);
+        this._workClock.pause();
+
+        var breakTimesMs = this._opts.breakTime*1000;
+        var breakClock = new Worksprint.Gear.Clock({
+            countdownFrom: breakTimesMs
+        });
+        $(breakClock).on('timer-tick', _.bind(this._tick, this));
+        breakClock.addEveryNMsEvent('timer-tick', 1000);
+
+        //TODO add simple handler events
+        //TODO add event for defined time
+        breakClock.addEveryNMsEvent('auto-stop', 100, breakTimesMs);
+        $(breakClock).on('auto-stop', _.once(_.bind(this._endBreak, this)));
+
+        breakClock.begin();
+
+        this._breakClock = breakClock;
+        this._currentClock = breakClock;
 
 
         $(this).triggerHandler('after-end-work', [{
-            elapsedTime: this._lastWorkPeriod,
+            elapsedTime: this._workClock.getTotalSeconds(),
             interrupts: this._lastInterruptCount
         }]);
     };
 
     /**
-     *
+     * Stop->(break)->Undo
      */
     t.prototype._undoBreak /* and continue work sprint*/ = function() {
         var self = this;
@@ -288,27 +319,41 @@ ns('Worksprint.Gear', 'Timer', (function() {
 
         this._setState(STATES.work);
 
-        if (!_.isUndefined(this._breakTimeoutId)) {
-            clearTimeout(this._breakTimeoutId);
-            this._breakTimeoutId = undefined;
+        if (this._breakClock) {
+            this._breakClock.pause();
+            this._breakClock = undefined;
+            this._currentClock = undefined;
         }
 
-        this.pause();
+        if (!this._workClock) {
+            throw 'Work clock is missing';
+        }
 
         //restore work params and timer
         this.setInterruptCounter(this._lastInterruptCount);
-        this._startTimer(undefined, this._lastWorkPeriod);
+        this._workClock.begin();
+        this._currentClock = this._workClock;
 
         $(this).triggerHandler('after-rewind-break');
     };
 
 
+    /**
+     *
+     * Stop->(break)->Stop
+     */
     t.prototype._endBreak = function() {
         var self = this;
         window.console && console.debug && console.debug('end break');
 
         this._setState(STATES.notwork);
-        this._lastBreakPeriod = this.pause();
+
+        if (!this._breakClock) {
+            throw 'Break clock is missing';
+        }
+
+        this._breakClock.pause();
+        this._currentClock = undefined;
         this.resetInterruptCounter();
 
         $(this).triggerHandler('after-end-break');
@@ -320,26 +365,8 @@ ns('Worksprint.Gear', 'Timer', (function() {
 
     // -------------------------------------------
 
-    /**
-     *
-     * @param countdown - in seconds
-     * @param offset - in seconds
-     */
-    t.prototype._startTimer = function(countdown, offset) {
-        var self = this;
-
-        this._start = Date.now();
-        this._countdownFrom = countdown;
-
-        if (!_.isUndefined(offset) && offset > 0) {
-            this._offset = offset;
-        } else {
-            this._offset = undefined;
-        }
-        this._interval = setInterval(function() {
-            $(self).triggerHandler('tick');
-        }, 1000);
-
+    t.prototype._tick = function() {
+        $(this).triggerHandler('tick');
     };
 
     t.prototype._setState = function(state) {
