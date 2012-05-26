@@ -120,7 +120,7 @@ Install requiments and driver:
     # 1. Install mysql client if you don't have one
     #sudo port install mysql5
 
-    # 2. and mysql-server if you database will run localy
+    # 2. and mysql-server if your database will run localy
     #sudo port install mysql5-server
 
     # 3. add symlink to mysql_config
