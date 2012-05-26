@@ -1,8 +1,6 @@
 Django==1.4
-# not needed now
-# MySQL-python==1.2.3
-South==0.7.4
-distribute==0.6.26
+South==0.7.5
+distribute==0.6.27
 wsgiref==0.1.2
 yolk
 flup

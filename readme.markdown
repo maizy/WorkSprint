@@ -140,7 +140,7 @@ Create mysql database (use utf8_general_ci collation).
 
 Create mysql user for new database.
 
-Create file work/setting_db.py
+Create file src/work/settings_db.py
 
     # _*_ coding: utf-8 _*_
     def get(settings):

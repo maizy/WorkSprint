@@ -29,3 +29,6 @@ local/
 #Project specific
 devserver-default-host
 var/
+
+#Settings
+src/work/settings_*.py
