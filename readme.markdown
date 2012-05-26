@@ -19,7 +19,6 @@ Tested on Ubuntu 10.10 Maveric
     sudo apt-get install python2.7 python2.7-dev libmysqlclient-dev \
                          python-setuptools build-essential
     sudo easy_install-2.7 -U virtualenv
-    sudo easy_install-2.7 -U pip
 
 ## Install worksprint
 
@@ -46,7 +45,7 @@ D. install requirements
 
 E. install database
 
-    src/tools/install-mysql.sh
+    **TODO**
 
 
 F. run initial migrations
@@ -65,7 +64,7 @@ G. deactivate virtualenv
 
 A. add init.d script
 
-**TODO** (see src/sys-conf-examples/etc/init.d/worksprint)
+**TODO**  (see src/sys-conf-examples/etc/init.d/worksprint)
 
 B. configure webserver virtual host (ex. nginx)
 
@@ -86,7 +85,6 @@ Tested on OS X 10.7.2
 
     sudo port install python-27 py27-virtualenv
     sudo easy_install-2.7 -U virtualenv
-    sudo easy_install-2.7 -U pip
 
 ## Install worksprint
 
@@ -111,14 +109,59 @@ D. Install requirements
 
     pip install -r requirements.txt
 
-E. Install database
+E.a. Install database - sqlLite
 
-    src/tools/install-mysql.sh
+    **TODO**
 
+E.b. Install database - mysql (advanced)
+
+Install requiments and driver:
+
+    # 1. Install mysql client if you don't have one
+    #sudo port install mysql5
+
+    # 2. and mysql-server if you database will run localy
+    #sudo port install mysql5-server
+
+    # 3. add symlink to mysql_config
+    ln -s /opt/local/bin/mysql_config5 bin/mysql_config
+
+    # 4. check that mysql_config in your PATH
+    which mysql_config
+
+    # 5. install additional requiments
+    pip install -r requirements_mysql.txt
+
+    # 6. you should see message "Successfully installed MySQL-python".
+    # If you don't write me issue with build logs.
+
+
+Create mysql database (use utf8_general_ci collation).
+
+Create mysql user for new database.
+
+Create file work/setting_db.py
+
+    # _*_ coding: utf-8 _*_
+    def get(settings):
+        return {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': 'ws', # database name
+                'USER': 'ws_user', # username
+                'PASSWORD': 'o_0', # password
+                'HOST': '', # mysql hostname (set to empty string for localhost)
+                'PORT': '', # Set to empty string for default
+                'OPTIONS' : {
+                    'init_command': 'SET storage_engine=INNODB, SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED'
+                }
+            }
+        }
 
 F. Run initial migrations
 
-    **TODO**
+    python src/work/manage.py syncdb
+    python src/work/manage.py migrate
 
 G. Deactivate virtualenv
 
