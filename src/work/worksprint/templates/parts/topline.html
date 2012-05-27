@@ -1,0 +1,9 @@
+{% load url from future %}
+<div class="topline">
+    {% if is_logged_in %}
+        You logged in as <span class="user_name">{{ user_name }}</span>. <a href="{% url 'auth-logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'auth-login' %}">Login</a>
+    {% endif %}
+
+</div>

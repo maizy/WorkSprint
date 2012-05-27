@@ -17,4 +17,9 @@ urlpatterns = patterns('',
     url(r'^js-tests/', include('django_jasmine.urls')),
 )
 
+urlpatterns += patterns('django.contrib.auth.views',
+    url(r'^accounts/login/$', 'login', name='auth-login'),
+    url(r'^accounts/logout/$', 'logout_then_login', name='auth-logout'),
+)
+
 urlpatterns += staticfiles_urlpatterns()
