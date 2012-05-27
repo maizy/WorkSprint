@@ -44,6 +44,8 @@ ns('Worksprint.View', 'Timer', (function() {
         /** @type {jQuery} */
         this._$dialDivider = undefined;
 
+        this._$helpMessageWrap = undefined;
+
         /** @type {jQuery} */
         this._$interrupts = undefined;
 
@@ -66,6 +68,7 @@ ns('Worksprint.View', 'Timer', (function() {
         this._$dialDivider = $('.divider', this._$wrap);
 
         this._$interrupts = $('.interrupts', this._$wrap);
+        this._$helpMessageWrap = $('.help_message', this._$wrap);;
 
         this._initButtons();
 
@@ -175,13 +178,57 @@ ns('Worksprint.View', 'Timer', (function() {
         }
     };
 
+    vt.prototype.updateHelpMessage = function() {
+        var self = this;
+        var timer = this.getTimerGear();
+        if (!timer) {
+            return;
+        }
+
+        var STATES = Worksprint.Gear.Timer.STATES;
+        switch (timer.getState()) {
+
+            case STATES.notwork:
+                this.setHelpMessage('Press Run when start working.');
+                break;
+
+            case STATES.work:
+                this.setHelpMessage('Now work hard. Don\'t forget to push the Interrupt button when it happens.');
+                break;
+
+            case STATES.brk:
+                var breakTime = timer.getTimerCountdownSeconds();
+                var mes = 'Have a rest';
+                if (breakTime) {
+                    mes += ' for ' + periodFormat(breakTime, ' ');
+                }
+                mes += '.';
+                this.setHelpMessage(mes);
+                break;
+
+            default:
+                this.setHelpMessage(undefined);
+                break;
+        }
+    };
+
+
     vt.prototype.update = function() {
         this.updateButtons();
         this.updateDial();
         this.updateInterrupts();
+        this.updateHelpMessage();
     };
 
-
+    vt.prototype.setHelpMessage = function(message) {
+        var self = this;
+        var $wrap = this._$helpMessageWrap;
+        if (_.isUndefined(message)) {
+            $wrap.hide().clean();
+        } else {
+            $wrap.show().text(message);
+        }
+    };
     // -------------------------------------------
 
     /**

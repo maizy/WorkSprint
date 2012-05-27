@@ -10,7 +10,7 @@ ns('Worksprint.View', 'ResultTable', (function() {
         begin: {label: 'Begin'},
         end: {label: 'End'},
         elapsedTime: {label: 'Elapsed time'},
-        breakTime: {label: 'Break time'},
+        //breakTime: {label: 'Break time'},
         interrupts: {label: 'Interrupts'}
         //,name: {label: 'Task'}
         //,actions: {label: ''}

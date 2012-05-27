@@ -211,6 +211,9 @@ ns('Worksprint.Gear', 'Timer', (function() {
         return this._interrupts;
     };
 
+    t.prototype.getBreakTime = function() {
+        return this._opts.breakTime;
+    };
     // -------------------------------------------
     // low-level actions
 
