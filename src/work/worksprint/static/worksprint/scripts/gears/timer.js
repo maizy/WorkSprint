@@ -55,7 +55,7 @@ ns('Worksprint.Gear', 'Timer', (function() {
             //def opts
             {
                 state: STATES.notwork,
-                breakTime: 10,
+                breakTime: 60*5,
                 workReminderTime: 60*15
             },
             opts || {});
