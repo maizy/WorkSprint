@@ -22,22 +22,32 @@
 
 
 {% block content%}
-{% spaceless %}
+
 <div class="timer">
-    <div class="buttons"></div>
-
-    <div class="dial">
-        <span class="minutes">--</span>
-        <span class="divider">:</span>
-        <span class="seconds">--</span>
+    <div class="row">
+        <div class="well form-inline buttons"></div>
     </div>
-    <div class="interrupts"></div>
 
-    <div class="help_message"></div>
+    <div class="row">
+        <div class="dial">
+            <span class="minutes">--</span>
+            <span class="divider">:</span>
+            <span class="seconds">--</span>
+        </div>
+    </div>
 
-    <div class="results"></div>
+    <div class="row">
+        <div class="interrupts"></div>
+    </div>
+
+    <div class="row">
+        <div class="help_message"></div>
+    </div>
+
+    <div class="row">
+        <div class="results"></div>
+    </div>
 </div>
-{% endspaceless %}
 
 <script type="text/javascript">
 (function() {

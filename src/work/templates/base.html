@@ -45,7 +45,9 @@
 <div class="container page_wrap">
 {% block title %}
     {% if page.title %}
-        <h1 class="page_title">{% block page_title %}{{ page.title }}{% endblock %}</h1>
+        <div class="row">
+            <h1 class="page_title">{% block page_title %}{{ page.title }}{% endblock %}</h1>
+        </div>
     {% endif %}
 {% endblock %}
 

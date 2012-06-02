@@ -236,11 +236,9 @@ ns('Worksprint.View', 'Timer', (function() {
      */
     vt.prototype._initButtons = function() {
         var self = this;
-        var $butWrap = $('div.buttons');
-        var $butList = $('<ul/>');
+        var $butWrap = this._$wrap.find('.buttons');
         _.each(BUTTONS, function(setup, code) {
-            var $btn = $('<button/>');
-            var $btnLi = $('<li/>');
+            var $btn = $('<button class="btn"/>');
 
             $btn.addClass(code+'_button')
                 .text(setup.label)
@@ -251,13 +249,10 @@ ns('Worksprint.View', 'Timer', (function() {
                 $(self).triggerHandler('button', [code, $btn]);
             });
 
-            $btnLi.append($btn);
-            $butList.append($btnLi);
-
+            $butWrap.append($btn);
+            $butWrap.append(' ');
             this._buttons[code] = $btn;
         }, this);
-
-        $butWrap.append($butList);
 
         return $butWrap;
     };
