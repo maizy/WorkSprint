@@ -102,7 +102,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'work.urls'
 
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = (
+    os.path.join(WEB_ROOT, 'templates'),
+)
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -126,6 +128,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
+    'work.accounts',
     'work.worksprint',
 
     'django_jasmine',

@@ -8,18 +8,18 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^$', redirect_to, {'url': '/sprint/', 'permanent' : False}),
+
+    #worksprint
     url(r'^sprint/', include('work.worksprint.urls', app_name='worksprint', namespace='ws')),
+
+    #accounts
+    url(r'^accounts/', include('work.accounts.urls', app_name='accounts', namespace='ac')),
 
     #admin
     url(r'^admin/', include(admin.site.urls)),
 
     #django-jasmine (js tests)
     url(r'^js-tests/', include('django_jasmine.urls')),
-)
-
-urlpatterns += patterns('django.contrib.auth.views',
-    url(r'^accounts/login/$', 'login', name='auth-login'),
-    url(r'^accounts/logout/$', 'logout_then_login', name='auth-logout'),
 )
 
 urlpatterns += staticfiles_urlpatterns()

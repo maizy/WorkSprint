@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{{ page.metatitle }}</title>
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="WorkSprint - tool for improved «tomato» technique">
+        <meta name="author" content="Nikita Kovaliov, http://dev.maizy.ru">
+
+        <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/bootstrap.min.css" >
+        <style>
+        body {
+            padding-top: 60px;
+        }
+        </style>
+        <link href="{{ STATIC_URL }}bootstrap/bootstrap-responsive.min.css" rel="stylesheet">
+        <!-- For IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="{{ STATIC_URL }}scripts/html5.js"></script>
+        <![endif]-->
+
+        <link rel="stylesheet" href="{{ STATIC_URL }}worksprint/css/common.css" />
+        {% block head_css %}{% endblock %}
+
+        <script type="text/javascript" src="{{ STATIC_URL }}scripts/min/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}scripts/min/underscore.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}scripts/min/underscore.string.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}bootstrap/bootstrap.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}scripts/common.js"></script>
+
+{#        <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico">#}
+{#        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ STATIC_URL }}images/apple-144.png">#}
+{#        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{ STATIC_URL }}images/apple-114.png">#}
+{#        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ STATIC_URL }}images/apple-72.png">#}
+{#        <link rel="apple-touch-icon-precomposed" href="{{ STATIC_URL }}images/apple-57.png">#}
+
+        {% block head_scripts %}{% endblock %}
+            
+</head>
+
+<body>
+{% block topline %}{% include 'parts/topline.html' %}{% endblock %}
+{% block body %}
+<div class="container page_wrap">
+{% block title %}
+    {% if page.title %}
+        <h1 class="page_title">{% block page_title %}{{ page.title }}{% endblock %}</h1>
+    {% endif %}
+{% endblock %}
+
+{% block content %}{% endblock %}
+
+{% endblock %}
+</div>
+{% block bottom_scripts %}{% endblock %}
+</body>
+</html>
